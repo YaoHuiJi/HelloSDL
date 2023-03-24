@@ -1,6 +1,9 @@
-#include <stdio.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <cstdio>
+#include <string>
+
+using namespace std;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -10,6 +13,8 @@ bool init();
 bool loadMedia();
 
 void close();
+
+void handleEvent();
 
 SDL_Window* gWindow = NULL;
 
@@ -41,18 +46,40 @@ bool init(){
     return success;
 }
 
-bool loadMedia(){
+bool loadMedia(const char* imageFile){
     bool success = true;
 
-    gHelloSDL = IMG_Load("images/Yao_Logo_1.jpeg");
+    gHelloSDL = IMG_Load(imageFile);
 
     if( gHelloSDL == NULL )
     {
-        printf( "无法加载图片 %s! SDL Error: %s\n", "images/Yao_Logo_1.jpeg", SDL_GetError() );
+        printf( "无法加载图片 %s! SDL Error: %s\n", imageFile, SDL_GetError() );
         success = false;
     }
 
     return success;
+}
+
+bool loadLogo(int8_t& logoIndex){
+
+    if(logoIndex>6)
+        logoIndex = 1;
+
+    if(logoIndex < 1)
+        logoIndex = 6;
+
+    string imageFile = "images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
+    
+    bool result = loadMedia(imageFile.c_str());
+
+    if(result){
+        SDL_BlitSurface( gHelloSDL, NULL, gScreenSurface, NULL);
+        SDL_UpdateWindowSurface( gWindow );
+    }else{
+        printf( "加载图片失败: %s\n" , SDL_GetError() );
+    }
+
+    return result;
 }
 
 void close(){
@@ -65,23 +92,48 @@ void close(){
     SDL_Quit();
 }
 
+void handleEvent(int8_t& imageIndex){
+    SDL_Event e;
+    bool quit = false; 
+            
+    while( quit == false ){ 
+        while( SDL_PollEvent( &e ) ){ 
+            if( e.type == SDL_QUIT ) quit = true; 
+
+            if( e.type == SDL_KEYDOWN){
+                // printf("按下按键: %d\n", e.key.keysym.sym);
+                switch (e.key.keysym.sym)
+                {
+                case SDLK_ESCAPE:
+                    quit = true;
+                    break;
+                case SDLK_EQUALS:
+                    loadLogo(++imageIndex);
+                    break;
+                case SDLK_MINUS:
+                    loadLogo(--imageIndex);
+                    break;
+                default:
+                    break;
+                }
+            }
+        } 
+    }
+}
+
 int main(int argc, char* args[])
 {
-    if( !init() ){
-        printf("初始化失败！\n");
-    }else{
-        if( !loadMedia() ){
-            printf("加载图片失败！\n"); 
+    int8_t imageIndex = 1;
+
+    if(init()){
+        if(loadLogo(imageIndex)){
+            handleEvent(imageIndex);
         }else{
-            SDL_BlitSurface( gHelloSDL, NULL, gScreenSurface, NULL);
-        
-            SDL_UpdateWindowSurface( gWindow );
-
-            //Hack to get window to stay up
-            SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
+            printf("加载图片失败！\n"); 
         }
+    }else{
+        printf("初始化失败！\n");
     }
-
 
     close();
 
