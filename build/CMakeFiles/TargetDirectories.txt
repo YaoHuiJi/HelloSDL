@@ -1,0 +1,5 @@
+/Users/yaohuiji/LearnSpace/HelloSDL/build/CMakeFiles/HelloSDL.dir
+/Users/yaohuiji/LearnSpace/HelloSDL/build/CMakeFiles/package.dir
+/Users/yaohuiji/LearnSpace/HelloSDL/build/CMakeFiles/package_source.dir
+/Users/yaohuiji/LearnSpace/HelloSDL/build/CMakeFiles/edit_cache.dir
+/Users/yaohuiji/LearnSpace/HelloSDL/build/CMakeFiles/rebuild_cache.dir
