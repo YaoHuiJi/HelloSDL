@@ -49,7 +49,19 @@ bool init(){
 bool loadMedia(const char* imageFile){
     bool success = true;
 
-    gHelloSDL = IMG_Load(imageFile);
+    SDL_Surface* loadedSurface = IMG_Load(imageFile);
+
+    SDL_Surface* optimizedSurface = SDL_ConvertSurface( loadedSurface, gScreenSurface->format, 0 );
+   
+    if( optimizedSurface == NULL )
+    {
+        gHelloSDL = loadedSurface;
+
+        printf( "无法优化图片 %s! SDL Error: %s\n", imageFile, SDL_GetError() );
+    }else{
+        gHelloSDL = optimizedSurface;
+        SDL_FreeSurface( loadedSurface );
+    }
 
     if( gHelloSDL == NULL )
     {
@@ -73,7 +85,18 @@ bool loadLogo(int8_t& logoIndex){
     bool result = loadMedia(imageFile.c_str());
 
     if(result){
-        SDL_BlitSurface( gHelloSDL, NULL, gScreenSurface, NULL);
+        float scale = gHelloSDL->h / SCREEN_HEIGHT;
+        float destWidth = gHelloSDL->w/scale;
+        float offsetX = (SCREEN_WIDTH - destWidth)/2;
+
+        SDL_Rect stretchRect;
+				stretchRect.x = offsetX;
+				stretchRect.y = 0;
+				stretchRect.w = gHelloSDL->w/scale;
+				stretchRect.h = SCREEN_HEIGHT;
+
+	    SDL_BlitScaled( gHelloSDL, NULL, gScreenSurface, &stretchRect);
+
         SDL_UpdateWindowSurface( gWindow );
     }else{
         printf( "加载图片失败: %s\n" , SDL_GetError() );
