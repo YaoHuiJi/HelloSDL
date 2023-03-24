@@ -1,0 +1,34 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "GCC_Configure_Preset",
+            "displayName": "GCC",
+            "description": "Using compilers: C = /usr/local/bin/gcc-12, CXX = /usr/local/bin/g++-12",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "/usr/local/bin/gcc-12",
+                "CMAKE_CXX_COMPILER": "/usr/local/bin/g++-12",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "GCC_Build_Preset",
+            "description": "",
+            "displayName": "GCC",
+            "configurePreset": "GCC_Configure_Preset"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "GCC_Test_Preset",
+            "description": "",
+            "displayName": "CTest",
+            "configurePreset": "GCC_Configure_Preset"
+        }
+    ]
+}
