@@ -49,7 +49,7 @@ bool init(){
 bool loadMedia(const char* imageFile){
     bool success = true;
 
-    gHelloSDL = IMG_Load("resources/images/Yao_Logo_1.jpeg");
+    gHelloSDL = IMG_Load(imageFile);
 
     if( gHelloSDL == NULL )
     {
@@ -68,7 +68,7 @@ bool loadLogo(int8_t& logoIndex){
     if(logoIndex < 1)
         logoIndex = 6;
 
-    string imageFile = "images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
+    string imageFile = "resources/images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
     
     bool result = loadMedia(imageFile.c_str());
 
