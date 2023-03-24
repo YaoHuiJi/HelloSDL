@@ -12,7 +12,7 @@ bool init();
 
 void close();
 
-void handleEvent();
+void handleEvent(int8_t& imageIndex);
 
 SDL_Window* gWindow = NULL;
 
@@ -46,7 +46,7 @@ bool init(){
             }
             else
             {
-                SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
+                SDL_SetRenderDrawColor( gRenderer, 0x33, 0x33, 0x33, 0xFF );
 
                 int imgFlags = IMG_INIT_JPG;
 
@@ -99,8 +99,24 @@ bool loadLogo(int8_t& logoIndex){
         printf("加载贴图失败!\n");
         success = false;
     }else{
+
+        int w = 0;
+        int h = 0;
+
+        SDL_QueryTexture(gTexture,NULL, NULL, &w, &h);
+        
+        float scale = h / SCREEN_HEIGHT;
+        float destWidth = w/scale;
+        float offsetX = (SCREEN_WIDTH - destWidth)/2;
+
+        SDL_Rect stretchRect;
+				stretchRect.x = offsetX;
+				stretchRect.y = 0;
+				stretchRect.w = w/scale;
+				stretchRect.h = SCREEN_HEIGHT;
+
         SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer,gTexture,NULL,NULL);
+        SDL_RenderCopy(gRenderer, gTexture, NULL, &stretchRect);
         SDL_RenderPresent(gRenderer);
     }
 
