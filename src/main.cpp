@@ -10,19 +10,17 @@ const int SCREEN_HEIGHT = 480;
 
 bool init();
 
-bool loadMedia();
-
 void close();
 
 void handleEvent();
 
 SDL_Window* gWindow = NULL;
 
-//windows所包含的Surface
-SDL_Surface* gScreenSurface = NULL;
+SDL_Renderer* gRenderer = NULL;
 
-//用来加载和显示图片的Surface
-SDL_Surface* gHelloSDL = NULL;
+SDL_Texture* loadTexture(string path);
+
+SDL_Texture* gTexture = NULL;
 
 bool init(){
     bool success = true;
@@ -39,40 +37,53 @@ bool init(){
         }
         else
         {
-            gScreenSurface = SDL_GetWindowSurface( gWindow );
+            gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
+
+            if( gRenderer == NULL )
+            {
+                printf( "Renderer创建失败! SDL Error: %s\n", SDL_GetError() );
+                success = false;
+            }
+            else
+            {
+                SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
+
+                int imgFlags = IMG_INIT_JPG;
+
+                if( !( IMG_Init( imgFlags ) & imgFlags ) )
+                {
+                    printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+                    success = false;
+                }
+            }
         }
     }
 
     return success;
 }
 
-bool loadMedia(const char* imageFile){
-    bool success = true;
+SDL_Texture* loadTexture(string path){
+    SDL_Texture* newTexture = NULL;
 
-    SDL_Surface* loadedSurface = IMG_Load(imageFile);
+    SDL_Surface* loadedFurface = IMG_Load(path.c_str());
 
-    SDL_Surface* optimizedSurface = SDL_ConvertSurface( loadedSurface, gScreenSurface->format, 0 );
-   
-    if( optimizedSurface == NULL )
-    {
-        gHelloSDL = loadedSurface;
-
-        printf( "无法优化图片 %s! SDL Error: %s\n", imageFile, SDL_GetError() );
+    if(loadedFurface == NULL){
+        printf("无法加载图片 %s SDL_image Error: %s\n", path.c_str(), SDL_GetError());
     }else{
-        gHelloSDL = optimizedSurface;
-        SDL_FreeSurface( loadedSurface );
+        newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedFurface);
+
+        if(newTexture == NULL){
+            printf("无法用‘%s’创建贴图！ SDL_image Error: %\n", path.c_str(), SDL_GetError());
+        }
+
+        SDL_FreeSurface(loadedFurface);
     }
 
-    if( gHelloSDL == NULL )
-    {
-        printf( "无法加载图片 %s! SDL Error: %s\n", imageFile, SDL_GetError() );
-        success = false;
-    }
-
-    return success;
+    return newTexture;
 }
 
 bool loadLogo(int8_t& logoIndex){
+    bool success = true;
 
     if(logoIndex>6)
         logoIndex = 1;
@@ -82,36 +93,30 @@ bool loadLogo(int8_t& logoIndex){
 
     string imageFile = "resources/images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
     
-    bool result = loadMedia(imageFile.c_str());
+    gTexture = loadTexture(imageFile);
 
-    if(result){
-        float scale = gHelloSDL->h / SCREEN_HEIGHT;
-        float destWidth = gHelloSDL->w/scale;
-        float offsetX = (SCREEN_WIDTH - destWidth)/2;
-
-        SDL_Rect stretchRect;
-				stretchRect.x = offsetX;
-				stretchRect.y = 0;
-				stretchRect.w = gHelloSDL->w/scale;
-				stretchRect.h = SCREEN_HEIGHT;
-
-	    SDL_BlitScaled( gHelloSDL, NULL, gScreenSurface, &stretchRect);
-
-        SDL_UpdateWindowSurface( gWindow );
+    if( gTexture == NULL ){
+        printf("加载贴图失败!\n");
+        success = false;
     }else{
-        printf( "加载图片失败: %s\n" , SDL_GetError() );
+        SDL_RenderClear(gRenderer);
+        SDL_RenderCopy(gRenderer,gTexture,NULL,NULL);
+        SDL_RenderPresent(gRenderer);
     }
 
-    return result;
+    return success;
 }
 
 void close(){
-    SDL_FreeSurface(gHelloSDL);
-    gHelloSDL = NULL;
+    SDL_DestroyTexture(gTexture);
+    gTexture = NULL;
 
+    SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
     gWindow = NULL;
+    gRenderer = NULL;
 
+    IMG_Quit();
     SDL_Quit();
 }
 
