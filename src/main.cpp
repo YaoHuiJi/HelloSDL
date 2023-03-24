@@ -49,7 +49,7 @@ bool init(){
 bool loadMedia(const char* imageFile){
     bool success = true;
 
-    gHelloSDL = IMG_Load(imageFile);
+    gHelloSDL = IMG_Load("resources/images/Yao_Logo_1.jpeg");
 
     if( gHelloSDL == NULL )
     {
@@ -128,8 +128,6 @@ int main(int argc, char* args[])
     if(init()){
         if(loadLogo(imageIndex)){
             handleEvent(imageIndex);
-        }else{
-            printf("加载图片失败！\n"); 
         }
     }else{
         printf("初始化失败！\n");
