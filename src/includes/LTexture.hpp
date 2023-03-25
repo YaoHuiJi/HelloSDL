@@ -16,6 +16,8 @@ class LTexture
 
         void free();
 
+        void setColor(Uint8 r ,Uint8 g, Uint8 b);
+
         void render(int x=-1, int y=-1,int width=-1, int height=-1);
 
         int getWidth();

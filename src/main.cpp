@@ -105,6 +105,8 @@ bool loadLogo(int8_t& logoIndex){
         SDL_RenderSetViewport(gRenderer,NULL);
 
         gLogo.render(SCREEN_WIDTH-100,SCREEN_HEIGHT-128,128,128);
+
+        gLogo.setColor(128,128,128);
         gLogo.render(4,4,64,64);
 
         SDL_RenderPresent(gRenderer);
