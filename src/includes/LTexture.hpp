@@ -16,7 +16,7 @@ class LTexture
 
         void free();
 
-        void render(int x, int y,int width=-1, int height=-1);
+        void render(int x=-1, int y=-1,int width=-1, int height=-1);
 
         int getWidth();
 

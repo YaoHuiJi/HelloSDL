@@ -98,7 +98,7 @@ bool loadLogo(int8_t& logoIndex){
         topRightViewPoint.h = 128;
 
         SDL_RenderSetViewport(gRenderer,&topRightViewPoint);
-        gTexture.render(-1, -1);
+        gTexture.render();
         //绘制缩略图结束
 
 
@@ -109,7 +109,7 @@ bool loadLogo(int8_t& logoIndex){
         bottomRightViewPoint.h = 128;
 
         SDL_RenderSetViewport(gRenderer,&bottomRightViewPoint);
-        gLogo.render(-1, -1);
+        gLogo.render();
         
 
         //恢复Viewport
