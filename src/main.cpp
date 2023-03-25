@@ -2,6 +2,7 @@
 #include <SDL_image.h>
 #include <cstdio>
 #include <string>
+#include "includes/LTexture.hpp"
 
 using namespace std;
 
@@ -18,9 +19,7 @@ SDL_Window* gWindow = NULL;
 
 SDL_Renderer* gRenderer = NULL;
 
-SDL_Texture* loadTexture(string path);
-
-SDL_Texture* gTexture = NULL;
+LTexture gTexture;
 
 void drawARectangle(int x=SCREEN_WIDTH/4, int y=SCREEN_HEIGHT/4, int w=SCREEN_WIDTH/2, int h=SCREEN_HEIGHT/2);
 
@@ -64,26 +63,6 @@ bool init(){
     return success;
 }
 
-SDL_Texture* loadTexture(string path){
-    SDL_Texture* newTexture = NULL;
-
-    SDL_Surface* loadedFurface = IMG_Load(path.c_str());
-
-    if(loadedFurface == NULL){
-        printf("无法加载图片 %s SDL_image Error: %s\n", path.c_str(), SDL_GetError());
-    }else{
-        newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedFurface);
-
-        if(newTexture == NULL){
-            printf("无法用‘%s’创建贴图！ SDL_image Error: %\n", path.c_str(), SDL_GetError());
-        }
-
-        SDL_FreeSurface(loadedFurface);
-    }
-
-    return newTexture;
-}
-
 bool loadLogo(int8_t& logoIndex){
     bool success = true;
 
@@ -95,33 +74,20 @@ bool loadLogo(int8_t& logoIndex){
 
     string imageFile = "resources/images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
     
-    gTexture = loadTexture(imageFile);
+    success = gTexture.loadFromFile(imageFile);
 
-    if( gTexture == NULL ){
-        printf("加载贴图失败!\n");
-        success = false;
-    }else{
-
-        int w = 0;
-        int h = 0;
-
-        //查询材质的尺寸
-        SDL_QueryTexture(gTexture,NULL, NULL, &w, &h);
+    if( success ){
+        int w = gTexture.getWidth();
+        int h = gTexture.getHeight();
         
         float scale = h / SCREEN_HEIGHT;
         float destWidth = w/scale;
         float offsetX = (SCREEN_WIDTH - destWidth)/2;
 
-        SDL_Rect stretchRect;
-				stretchRect.x = offsetX;
-				stretchRect.y = 0;
-				stretchRect.w = w/scale;
-				stretchRect.h = SCREEN_HEIGHT;
-
         SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
         SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, gTexture, NULL, &stretchRect);
 
+        gTexture.render(offsetX, 0, w/scale, SCREEN_HEIGHT);
 
         //绘制缩略图
         SDL_Rect topRightViewPoint;
@@ -131,7 +97,7 @@ bool loadLogo(int8_t& logoIndex){
         topRightViewPoint.h = 128;
 
         SDL_RenderSetViewport(gRenderer,&topRightViewPoint);
-        SDL_RenderCopy(gRenderer,gTexture,NULL,NULL);
+        gTexture.render(-1, -1);
         //绘制缩略图结束
         
         //恢复Viewport
@@ -144,8 +110,7 @@ bool loadLogo(int8_t& logoIndex){
 }
 
 void close(){
-    SDL_DestroyTexture(gTexture);
-    gTexture = NULL;
+    gTexture.free();
 
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
