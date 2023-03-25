@@ -105,6 +105,7 @@ bool loadLogo(int8_t& logoIndex){
         int w = 0;
         int h = 0;
 
+        //查询材质的尺寸
         SDL_QueryTexture(gTexture,NULL, NULL, &w, &h);
         
         float scale = h / SCREEN_HEIGHT;
@@ -120,6 +121,22 @@ bool loadLogo(int8_t& logoIndex){
         SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
         SDL_RenderClear(gRenderer);
         SDL_RenderCopy(gRenderer, gTexture, NULL, &stretchRect);
+
+
+        //绘制缩略图
+        SDL_Rect topRightViewPoint;
+        topRightViewPoint.x = SCREEN_WIDTH-128;
+        topRightViewPoint.y = 0;
+        topRightViewPoint.w = 128;
+        topRightViewPoint.h = 128;
+
+        SDL_RenderSetViewport(gRenderer,&topRightViewPoint);
+        SDL_RenderCopy(gRenderer,gTexture,NULL,NULL);
+        //绘制缩略图结束
+        
+        //恢复Viewport
+        SDL_RenderSetViewport(gRenderer,NULL);
+
         SDL_RenderPresent(gRenderer);
     }
 
