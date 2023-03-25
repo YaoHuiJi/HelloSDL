@@ -101,19 +101,11 @@ bool loadLogo(int8_t& logoIndex){
         gTexture.render();
         //绘制缩略图结束
 
-
-        SDL_Rect bottomRightViewPoint;
-        bottomRightViewPoint.x = SCREEN_WIDTH-128;
-        bottomRightViewPoint.y = SCREEN_HEIGHT-128;
-        bottomRightViewPoint.w = 128;
-        bottomRightViewPoint.h = 128;
-
-        SDL_RenderSetViewport(gRenderer,&bottomRightViewPoint);
-        gLogo.render();
-        
-
         //恢复Viewport
         SDL_RenderSetViewport(gRenderer,NULL);
+
+        gLogo.render(SCREEN_WIDTH-100,SCREEN_HEIGHT-128,128,128);
+        gLogo.render(4,4,64,64);
 
         SDL_RenderPresent(gRenderer);
     }
