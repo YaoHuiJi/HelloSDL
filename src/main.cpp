@@ -20,6 +20,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 
 LTexture gTexture;
+LTexture gLogo;
 
 void drawARectangle(int x=SCREEN_WIDTH/4, int y=SCREEN_HEIGHT/4, int w=SCREEN_WIDTH/2, int h=SCREEN_HEIGHT/2);
 
@@ -74,7 +75,7 @@ bool loadLogo(int8_t& logoIndex){
 
     string imageFile = "resources/images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
     
-    success = gTexture.loadFromFile(imageFile);
+    success = gTexture.loadFromFile(imageFile) && gLogo.loadFromFile("resources/images/logo.png");
 
     if( success ){
         int w = gTexture.getWidth();
@@ -99,7 +100,18 @@ bool loadLogo(int8_t& logoIndex){
         SDL_RenderSetViewport(gRenderer,&topRightViewPoint);
         gTexture.render(-1, -1);
         //绘制缩略图结束
+
+
+        SDL_Rect bottomRightViewPoint;
+        bottomRightViewPoint.x = SCREEN_WIDTH-128;
+        bottomRightViewPoint.y = SCREEN_HEIGHT-128;
+        bottomRightViewPoint.w = 128;
+        bottomRightViewPoint.h = 128;
+
+        SDL_RenderSetViewport(gRenderer,&bottomRightViewPoint);
+        gLogo.render(-1, -1);
         
+
         //恢复Viewport
         SDL_RenderSetViewport(gRenderer,NULL);
 
@@ -111,6 +123,7 @@ bool loadLogo(int8_t& logoIndex){
 
 void close(){
     gTexture.free();
+    gLogo.free();
 
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
