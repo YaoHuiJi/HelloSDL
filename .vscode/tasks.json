@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"options": {
+		"cwd":"${workspaceRoot}/build"
+	},
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "cmake",
+			"command": "cmake ..",
+		},
+		{
+			"type": "shell",
+			"label": "make",
+			"command": "make",
+		},
+		{
+			"type": "shell",
+			"label": "debug",
+			"command": "lldb ../bin/HelloSDL",
+		},
+	]
+}
