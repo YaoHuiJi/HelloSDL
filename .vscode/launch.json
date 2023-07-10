@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "LLDB调试",
+            "name": "LLDB",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/HelloSDL",
@@ -16,19 +16,10 @@
                     "name": "PATH",
                     "value": "$PATH:${command:cmake.launchTargetDirectory}"
                 },
-                {
-                    "name": "OTHER_VALUE",
-                    "value": "Something something"
-                }
             ],
             "externalConsole": false,
             "MIMode": "lldb",
             "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
             ]
         }
     ]
