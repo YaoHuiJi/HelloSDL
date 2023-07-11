@@ -1,6 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
-#include "includes/LTexture.hpp"
+#include "LTexture.hpp"
 
 extern SDL_Renderer* gRenderer;
 

@@ -2,7 +2,7 @@
 #include <SDL_image.h>
 #include <cstdio>
 #include <string>
-#include "includes/LTexture.hpp"
+#include "common/LTexture.hpp"
 
 using namespace std;
 
