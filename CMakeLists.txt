@@ -18,13 +18,13 @@ include(CPack)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 
-add_subdirectory(src/common)
+add_subdirectory(src/YEngine)
 
 aux_source_directory(src DIR_SRCS)
 add_executable(HelloSDL ${DIR_SRCS} )
 
 
-target_link_libraries(HelloSDL PRIVATE Common)
+target_link_libraries(HelloSDL PRIVATE YEngine)
 
 target_link_libraries(HelloSDL PRIVATE SDL2::SDL2)
 target_link_libraries(HelloSDL PRIVATE SDL2_image::SDL2_image)
