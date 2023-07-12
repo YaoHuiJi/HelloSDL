@@ -20,7 +20,12 @@
 
 ## 在Web里运行
 
-- 使用命令：`emcc src/main.cpp src/YEngine/LTexture.cpp  -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_LIBJPEG=1 -s SDL2_IMAGE_FORMATS='["jpg","png"]' --preload-file resources -o hello.html` 把游戏编译成wasm html应用
-- 运行: `emrun --browser chrome hello.html`
+1. 系统终端
+   - 构建：`emcc src/main.cpp src/YEngine/LTexture.cpp  -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_LIBJPEG=1 -s SDL2_IMAGE_FORMATS='["jpg","png"]' --preload-file resources -o bin/main.html` 把游戏编译成wasm html应用
+   - 运行：`emrun --browser chrome bin/main.html`
+
+2. VS Code
+   - 构建：执行Task `Build Wasm App`
+   - 运行：执行Task `Launch Wasm App`
 
 >> ⚠️注意：现在运行hello.html会发现一直处于running,因为main函数里的while是无限循环。因此需要修改main loop的逻辑，将其改为适合wasm app，详细参考：[html一直被hang的问题](https://emscripten.org/docs/getting_started/FAQ.html#why-does-my-html-app-hang), [如何运行Main Loop](https://emscripten.org/docs/getting_started/FAQ.html#faq-how-run-event-loop)
