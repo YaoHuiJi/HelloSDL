@@ -2,7 +2,7 @@
 #include <SDL_image.h>
 #include <cstdio>
 #include <string>
-#include "YEngine/LTexture.hpp"
+#include "LTexture.hpp"
 
 using namespace std;
 
@@ -19,8 +19,8 @@ SDL_Window* gWindow = NULL;
 
 SDL_Renderer* gRenderer = NULL;
 
-LTexture gTexture;
-LTexture gLogo;
+YEngine::LTexture gTexture;
+YEngine::LTexture gLogo;
 
 void drawARectangle(int x=SCREEN_WIDTH/4, int y=SCREEN_HEIGHT/4, int w=SCREEN_WIDTH/2, int h=SCREEN_HEIGHT/2);
 

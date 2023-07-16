@@ -4,6 +4,8 @@
 
 extern SDL_Renderer* gRenderer;
 
+using namespace YEngine;
+
 LTexture::LTexture(){
     mTexture = NULL;
     mWidth = 0;

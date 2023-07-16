@@ -4,6 +4,7 @@
 #include <string>
 #include <SDL.h>
 
+namespace YEngine{
 
 class LTexture
 {
@@ -30,5 +31,7 @@ class LTexture
         int mWidth;
         int mHeight;
 };
+
+}
 
 #endif /* LTEXTURE */
