@@ -1,10 +1,10 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include "LTexture.hpp"
-
-using namespace std;
+#include <iostream>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -13,48 +13,35 @@ bool init();
 
 void close();
 
-void handleEvent(int8_t& imageIndex);
+SDL_Window* gWindow = nullptr;
+SDL_Renderer* gRenderer = nullptr;
 
-SDL_Window* gWindow = NULL;
-
-SDL_Renderer* gRenderer = NULL;
-
-YEngine::LTexture gTexture;
-YEngine::LTexture gLogo;
-
-void drawARectangle(int x=SCREEN_WIDTH/4, int y=SCREEN_HEIGHT/4, int w=SCREEN_WIDTH/2, int h=SCREEN_HEIGHT/2);
+YEngine::LTexture gFooTexture;
+YEngine::LTexture gBackgroundTexture;
 
 bool init(){
     bool success = true;
 
-    if( SDL_Init(SDL_INIT_VIDEO) < 0 ){
-        printf( "SDL无法初始化! SDL_Error: %s\n", SDL_GetError() );
+    if(SDL_Init(SDL_INIT_VIDEO)<0){
+        printf("SDL初始化失败！");
         success = false;
     }else{
-        gWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow("你好",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,SCREEN_WIDTH,SCREEN_HEIGHT,SDL_WINDOW_SHOWN);
 
-        if( gWindow == NULL ){
-             printf( "无法创建窗口！SDL_Error: %s\n", SDL_GetError() );
+        if(!gWindow){
+            printf("Window初始化失败！");
             success = false;
-        }
-        else
-        {
-            gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
+        }else{
+            gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED);
 
-            if( gRenderer == NULL )
-            {
-                printf( "Renderer创建失败! SDL Error: %s\n", SDL_GetError() );
+            if(!gRenderer){
+                printf("Renderer初始化失败！");
                 success = false;
-            }
-            else
-            {
-                SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
+            }else{
+                SDL_SetRenderDrawColor(gRenderer,0xCC,0xCC,0xCC,0xFF);
 
-                int imgFlags = IMG_INIT_JPG;
-
-                if( !( IMG_Init( imgFlags ) & imgFlags ) )
-                {
-                    printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+                if(!(IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) ){
+                    printf("SDL_image初始化失败!%s\n", IMG_GetError());
                     success = false;
                 }
             }
@@ -64,194 +51,76 @@ bool init(){
     return success;
 }
 
-bool loadLogo(int8_t& logoIndex){
+bool loadMedia()
+{
     bool success = true;
 
-    if(logoIndex>6)
-        logoIndex = 1;
-
-    if(logoIndex < 1)
-        logoIndex = 6;
-
-    string imageFile = "resources/images/Yao_Logo_" + to_string(logoIndex) + ".jpeg";
+    if( !gFooTexture.loadFromFile( "resources/images/logo.jpg" ) )
+    {
+        printf( "Failed to load Foo' texture image!\n" );
+        success = false;
+    }
     
-    success = gTexture.loadFromFile(imageFile) && gLogo.loadFromFile("resources/images/logo.png");
-
-    if( success ){
-        int w = gTexture.getWidth();
-        int h = gTexture.getHeight();
-        
-        float scale = h / SCREEN_HEIGHT;
-        float destWidth = w/scale;
-        float offsetX = (SCREEN_WIDTH - destWidth)/2;
-
-        SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
-        SDL_RenderClear(gRenderer);
-
-        gTexture.render(offsetX, 0, w/scale, SCREEN_HEIGHT);
-
-        //绘制缩略图
-        SDL_Rect topRightViewPoint;
-        topRightViewPoint.x = SCREEN_WIDTH-128;
-        topRightViewPoint.y = 0;
-        topRightViewPoint.w = 128;
-        topRightViewPoint.h = 128;
-
-        SDL_RenderSetViewport(gRenderer,&topRightViewPoint);
-        gTexture.render();
-        //绘制缩略图结束
-
-        //恢复Viewport
-        SDL_RenderSetViewport(gRenderer,NULL);
-
-        gLogo.render(SCREEN_WIDTH-100,SCREEN_HEIGHT-128,128,128);
-
-        gLogo.setColor(128,128,128);
-        gLogo.render(4,4,64,64);
-
-        SDL_RenderPresent(gRenderer);
+    //Load background texture
+    if( !gBackgroundTexture.loadFromFile( "resources/images/logo.jpg" ) )
+    {
+        printf( "Failed to load background texture image!\n" );
+        success = false;
     }
 
     return success;
 }
 
 void close(){
-    gTexture.free();
-    gLogo.free();
+
+    gFooTexture.free();
+    gBackgroundTexture.free();
 
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
-    gWindow = NULL;
-    gRenderer = NULL;
+    gWindow = nullptr;
+    gRenderer = nullptr;
 
     IMG_Quit();
     SDL_Quit();
 }
 
-void drawARectangle(int x, int y, int w, int h){
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
-    SDL_RenderClear(gRenderer);
-
-    SDL_SetRenderDrawColor(gRenderer,0xF1,0xA0,0x50,0xFF);
-    SDL_Rect rect = {x, y, w, h};
-    SDL_RenderFillRect(gRenderer,&rect);
-
-    SDL_Rect outlineRect = { SCREEN_WIDTH / 6, SCREEN_HEIGHT / 6, SCREEN_WIDTH * 2 / 3, SCREEN_HEIGHT * 2 / 3 };
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0xFF, 0x00, 0xFF );        
-    SDL_RenderDrawRect( gRenderer, &outlineRect );
-
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0xFF, 0xFF );
-    SDL_RenderDrawLine( gRenderer, 0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2 );
-
-    SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0x00, 0xFF );
-    
-    for( int i = 0; i < SCREEN_HEIGHT; i += 4 )
-    {
-        SDL_RenderDrawPoint( gRenderer, SCREEN_WIDTH / 2, i );
-    }
-
-    SDL_RenderPresent(gRenderer);
-}
-
-void drawBezierCurve(SDL_Renderer* renderer, SDL_Point p0, SDL_Point p1, SDL_Point p2, SDL_Point p3, float step)
-{
-    SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0xFF );
-    SDL_RenderClear(gRenderer);
-
-    SDL_SetRenderDrawColor(renderer, 0xFF, 00, 0, 255);
-    SDL_RenderDrawPoint(renderer, p0.x, p0.y);
-
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0x20, 0, 255);
-    SDL_RenderDrawPoint(renderer, p1.x, p1.y);
-
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0x30, 0, 255);
-    SDL_RenderDrawPoint(renderer, p2.x, p2.y);
-
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0x40, 0, 255);
-    SDL_RenderDrawPoint(renderer, p3.x, p3.y);
-
-    float t = 0.0f;
-    while (t <= 1.0f)
-    {
-        // 计算贝塞尔曲线上的点
-        float u = 1.0f - t;
-        float tt = t * t;
-        float uu = u * u;
-        float uuu = uu * u;
-        float ttt = tt * t;
-        SDL_Point p = {
-            static_cast<int>(uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x),
-            static_cast<int>(uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y)
-        };
-
-        // 绘制贝塞尔曲线上的点
-        SDL_SetRenderDrawColor(renderer, 123, 125, 0, 255);
-        SDL_RenderDrawPoint(renderer, p.x, p.y);
-
-        // 增加步长
-        t += step;
-    }
-
-     SDL_RenderPresent(gRenderer);
-}
-
-void handleEvent(int8_t& imageIndex){
-    SDL_Event e;
-    bool quit = false; 
-            
-    while( quit == false ){ 
-        while( SDL_PollEvent( &e ) ){ 
-            if( e.type == SDL_QUIT ) quit = true; 
-
-            if( e.type == SDL_KEYDOWN){
-                // printf("按下按键: %d\n", e.key.keysym.sym);
-                switch (e.key.keysym.sym)
-                {
-                    case SDLK_ESCAPE:
-                        quit = true;
-                        break;
-                    case SDLK_EQUALS:
-                        loadLogo(++imageIndex);
-                        break;
-                    case SDLK_MINUS:
-                        loadLogo(--imageIndex);
-                        break;
-                    case SDLK_r:
-                        {
-                            drawARectangle();
-                        }
-                        break;
-                    case SDLK_b:
-                        {
-                            SDL_Point p0 = { 100, 100 };
-                            SDL_Point p1 = { 200, 50 };
-                            SDL_Point p2 = { 300, 200 };
-                            SDL_Point p3 = { 400, 100 };
-                            float step = 0.001f;
-                            drawBezierCurve(gRenderer, p0, p1, p2, p3, step);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        } 
-    }
-}
-
 int main(int argc, char* args[])
 {
-    int8_t imageIndex = 1;
+    int x = 0;
+    int y = 0;
 
-    if(init()){
-        if(loadLogo(imageIndex)){
-            handleEvent(imageIndex);
+    if(init()&&loadMedia()){
+        SDL_Event e; 
+        bool quit = false; 
+        
+        while( quit == false ){ 
+            while( SDL_PollEvent( &e ) )
+            { 
+                if( e.type == SDL_QUIT ) quit = true; 
+                else if (e.type== SDL_KEYDOWN)
+                {
+                    if(e.key.keysym.sym == SDLK_r){
+                        x = rand()%SCREEN_WIDTH+1;
+                        y = rand()%SCREEN_HEIGHT+1;
+                    }
+                }
+                
+            } 
+            SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
+            SDL_RenderClear(gRenderer);
+
+            gBackgroundTexture.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+
+            int w,h;
+            SDL_QueryTexture(gFooTexture.getTexture(),nullptr,nullptr,&w,&h);
+            gFooTexture.render(60,60,w,h);
+
+            SDL_RenderPresent(gRenderer);
         }
-    }else{
-        printf("初始化失败！\n");
     }
 
     close();
-
+    
     return 0;
 }
