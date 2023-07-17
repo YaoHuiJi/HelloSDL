@@ -160,13 +160,12 @@ bool loadButtonSprite()
 		//Set sprites
 		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
 		{
-			gSpriteClips[ i ].x = 0;
-			gSpriteClips[ i ].y = i * 200;
-			gSpriteClips[ i ].w = BUTTON_WIDTH;
-			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+			gButtonSpriteClips[ i ].x = 0;
+			gButtonSpriteClips[ i ].y = i * 200;
+			gButtonSpriteClips[ i ].w = BUTTON_WIDTH;
+			gButtonSpriteClips[ i ].h = BUTTON_HEIGHT;
 		}
 
-		//Set buttons in corners
 		gButtons[ 0 ].setPosition( 0, 0 );
 		gButtons[ 1 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, 0 );
 		gButtons[ 2 ].setPosition( 0, SCREEN_HEIGHT - BUTTON_HEIGHT );
@@ -409,5 +408,5 @@ void LButton::handleEvent( SDL_Event* e )
 void LButton::render()
 {
     //Show current button sprite
-    gButtonSpriteSheetTexture.render( mPosition.x, mPosition.y, &gSpriteClips[ mCurrentSprite ] );
+    gButtonSpriteSheetTexture.render( mPosition.x, mPosition.y, &gButtonSpriteClips[ mCurrentSprite ] );
 }
