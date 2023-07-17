@@ -78,6 +78,8 @@ class LButton{
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+const int SCREEN_FPS = 60;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 bool init();
 
@@ -107,20 +109,50 @@ YEngine::LTexture gButtonSpriteSheetTexture;
 
 LButton gButtons[ TOTAL_BUTTONS ]; 
 
-void showFPS(){
-    static auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed_us = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    start = end;
+/**
+ * @brief 用两种算法显示FPS
+ * 
+ * @param useSDLTicks 是否使用SDL Ticks来计数
+ */
+void showFPS(bool useSDLTicks, LTimer& fpsTimer, std::stringstream& timeText, int& countedFrames){
+    if(useSDLTicks){
 
-    double fps = 1000.0/elapsed_us;
-    std::stringstream stream;
-    stream << std::setprecision(2) << fps;
+        float avgFPS = countedFrames / ( fpsTimer.getTicks() / 1000.f );
+        if( avgFPS > 2000000 )
+        {
+            avgFPS = 0;
+        }
 
-    gFPSTexture.loadFromRenderedText("FPS:" + stream.str(),SDL_Color{255,255,255});
+        timeText.str( "" );
+        timeText << "A.FPS:" << avgFPS; 
 
-    gFPSTexture.render(0,SCREEN_HEIGHT-30,-1);
-    //std::cout << "FPS:" << (1000.0/elapsed_us) << std::endl;
+        //Render text
+        if( !gFPSTexture.loadFromRenderedText( timeText.str().data(), SDL_Color{255,255,255} ) )
+        {
+            printf( "Unable to render FPS texture!\n" );
+        }
+
+        gFPSTexture.render(0,SCREEN_HEIGHT-gFPSTexture.getHeight(),-1);
+
+        ++countedFrames;
+
+        // printf("FRames:%i Secs:%i\n ",countedFrames, fpsTimer.getTicks() / 1000);
+
+    }else{
+        static auto start = std::chrono::high_resolution_clock::now();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed_us = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        start = end;
+
+        double fps = 1000.0/elapsed_us;
+        std::stringstream stream;
+        stream << std::setprecision(2) << fps;
+
+        gFPSTexture.loadFromRenderedText("FPS:" + stream.str(),SDL_Color{255,255,255});
+
+        gFPSTexture.render(0,SCREEN_HEIGHT-gFPSTexture.getHeight(),-1);
+        //std::cout << "FPS:" << (1000.0/elapsed_us) << std::endl;
+    }
 }
 
 bool init(){
@@ -136,7 +168,9 @@ bool init(){
             printf("Window初始化失败！");
             success = false;
         }else{
-            gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
+            // gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
+
+            gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED);
 
             if(!gRenderer){
                 printf("Renderer初始化失败！");
@@ -323,6 +357,14 @@ int main(int argc, char* args[])
         
         bool quit = false; 
 
+        bool useLTimerFPS = false;
+        LTimer fpsTimer;
+        std::stringstream fpsText;
+        int countedFrames = 0;
+        fpsTimer.start();
+
+        LTimer capTimer;
+
         LTimer timer;
         std::stringstream timeText;
 
@@ -331,6 +373,8 @@ int main(int argc, char* args[])
         SDL_RendererFlip flipType = SDL_FLIP_NONE;
         
         while( quit == false ){ 
+            capTimer.start();
+            
             while( SDL_PollEvent( &e ) )
             { 
                 if( e.type == SDL_QUIT ) quit = true; 
@@ -409,6 +453,10 @@ int main(int argc, char* args[])
                                 timer.pause();
                             }
                             break;
+
+                            case SDLK_y:
+                            useLTimerFPS = ! useLTimerFPS;
+                            break;
                         }
                 }
                 
@@ -421,8 +469,9 @@ int main(int argc, char* args[])
 
             const Uint8* currentKeyStates = SDL_GetKeyboardState( nullptr );
 
-            if(currentKeyStates[SDL_SCANCODE_ESCAPE]){
-                printf("ESCAPE is pressed\n");
+            if(currentKeyStates[SDL_SCANCODE_T]){
+                //按下键时，此处会被调用很多次
+                useLTimerFPS = ! useLTimerFPS;
             }
 
             SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
@@ -457,7 +506,7 @@ int main(int argc, char* args[])
             //     gButtons[ i ].render();
             // }
 
-            showFPS();
+            showFPS(useLTimerFPS,fpsTimer,fpsText,countedFrames);
 
             timeText.str("");
             timeText << "自上次开始的秒数:" << (timer.getTicks()/1000.f);
@@ -469,6 +518,13 @@ int main(int argc, char* args[])
             gTimeTextTexture.render(SCREEN_WIDTH-330,0,-1,-1);
 
             SDL_RenderPresent(gRenderer);
+
+            //如果帧结束的太早则延迟
+            int frameTicks = capTimer.getTicks();
+            if( frameTicks < SCREEN_TICKS_PER_FRAME )
+            {
+                SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+            }
         }
     }
 
