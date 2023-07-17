@@ -15,8 +15,9 @@ class LTexture
 
         bool loadFromFile(std::string path);
 
-        //Creates image from font string
+        #if defined(SDL_TTF_MAJOR_VERSION)
         bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
+        #endif
 
         void free();
 

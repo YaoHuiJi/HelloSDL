@@ -10,6 +10,41 @@
 #include <iomanip>
 #include <chrono>
 
+const int BUTTON_WIDTH = 300;
+const int BUTTON_HEIGHT = 200;
+const int TOTAL_BUTTONS = 4;
+
+enum LButtonSprite
+{
+    BUTTON_SPRITE_MOUSE_OUT = 0,
+    BUTTON_SPRITE_MOUSE_OVER_MOTION = 1,
+    BUTTON_SPRITE_MOUSE_DOWN = 2,
+    BUTTON_SPRITE_MOUSE_UP = 3,
+    BUTTON_SPRITE_TOTAL = 4
+};
+
+class LButton{
+    public:
+        //Initializes internal variables
+        LButton();
+
+        //Sets top left position
+        void setPosition( int x, int y );
+
+        //Handles mouse event
+        void handleEvent( SDL_Event* e );
+    
+        //Shows button sprite
+        void render();
+
+    private:
+        //Top left position
+        SDL_Point mPosition;
+
+        //Currently used global sprite
+        LButtonSprite mCurrentSprite;
+};
+
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -28,6 +63,11 @@ YEngine::LTexture gSpriteSheetTexture;
 YEngine::LTexture gBackgroundTexture;
 YEngine::LTexture gTextTexture;
 YEngine::LTexture gFPSTexture;
+
+SDL_Rect gButtonSpriteClips[ BUTTON_SPRITE_TOTAL ];
+YEngine::LTexture gButtonSpriteSheetTexture;
+
+LButton gButtons[ TOTAL_BUTTONS ]; 
 
 void showFPS(){
     static auto start = std::chrono::high_resolution_clock::now();
@@ -105,6 +145,37 @@ bool loadFont(){
     return success;
 }
 
+bool loadButtonSprite()
+{
+	bool success = true;
+
+	//Load sprites
+	if( !gButtonSpriteSheetTexture.loadFromFile( "resources/images/button.png" ) )
+	{
+		printf( "加载按钮精灵表失败\n" );
+		success = false;
+	}
+	else
+	{
+		//Set sprites
+		for( int i = 0; i < BUTTON_SPRITE_TOTAL; ++i )
+		{
+			gSpriteClips[ i ].x = 0;
+			gSpriteClips[ i ].y = i * 200;
+			gSpriteClips[ i ].w = BUTTON_WIDTH;
+			gSpriteClips[ i ].h = BUTTON_HEIGHT;
+		}
+
+		//Set buttons in corners
+		gButtons[ 0 ].setPosition( 0, 0 );
+		gButtons[ 1 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, 0 );
+		gButtons[ 2 ].setPosition( 0, SCREEN_HEIGHT - BUTTON_HEIGHT );
+		gButtons[ 3 ].setPosition( SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT );
+	}
+
+	return success;
+}
+
 bool loadMedia()
 {
     bool success = true;
@@ -137,6 +208,7 @@ bool loadMedia()
 }
 
 void close(){
+    gButtonSpriteSheetTexture.free();
 
     gTextTexture.free();
     TTF_CloseFont( gFont );
@@ -161,7 +233,7 @@ int main(int argc, char* args[])
     Uint8 b = 255;
     int frame = 0;
 
-    if(init()&&loadMedia()&&loadFont()){
+    if(init()&&loadMedia()&&loadFont()&&loadButtonSprite()){
         SDL_Event e; 
         bool quit = false; 
 
@@ -212,6 +284,11 @@ int main(int argc, char* args[])
                         }
                 }
                 
+                //Handle button events
+                for( int i = 0; i < TOTAL_BUTTONS; ++i )
+                {
+                    gButtons[ i ].handleEvent( &e );
+                }
             } 
             SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
             SDL_RenderClear(gRenderer);
@@ -239,6 +316,12 @@ int main(int argc, char* args[])
             //渲染文本
             gTextTexture.render(0,0,-1,-1);
 
+            //渲染buttons
+            for( int i = 0; i < TOTAL_BUTTONS; ++i )
+            {
+                gButtons[ i ].render();
+            }
+
             showFPS();
 
             SDL_RenderPresent(gRenderer);
@@ -248,4 +331,83 @@ int main(int argc, char* args[])
     close();
     
     return 0;
+}
+
+LButton::LButton()
+{
+    mPosition.x = 0;
+    mPosition.y = 0;
+
+    mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
+}
+
+void LButton::setPosition( int x, int y )
+{
+    mPosition.x = x;
+    mPosition.y = y;
+}
+
+void LButton::handleEvent( SDL_Event* e )
+{
+    //If mouse event happened
+    if( e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP )
+    {
+        //Get mouse position
+        int x, y;
+        SDL_GetMouseState( &x, &y );
+
+        //Check if mouse is in button
+        bool inside = true;
+
+        //Mouse is left of the button
+        if( x < mPosition.x )
+        {
+            inside = false;
+        }
+        //Mouse is right of the button
+        else if( x > mPosition.x + BUTTON_WIDTH )
+        {
+            inside = false;
+        }
+        //Mouse above the button
+        else if( y < mPosition.y )
+        {
+            inside = false;
+        }
+        //Mouse below the button
+        else if( y > mPosition.y + BUTTON_HEIGHT )
+        {
+            inside = false;
+        }
+        //Mouse is outside button
+        if( !inside )
+        {
+            mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
+        }
+        //Mouse is inside button
+        else
+        {
+            //Set mouse over sprite
+            switch( e->type )
+            {
+                case SDL_MOUSEMOTION:
+                mCurrentSprite = BUTTON_SPRITE_MOUSE_OVER_MOTION;
+                break;
+            
+                case SDL_MOUSEBUTTONDOWN:
+                mCurrentSprite = BUTTON_SPRITE_MOUSE_DOWN;
+                break;
+                
+                case SDL_MOUSEBUTTONUP:
+                mCurrentSprite = BUTTON_SPRITE_MOUSE_UP;
+                break;
+            }
+        }
+    }
+}
+
+void LButton::render()
+{
+    //Show current button sprite
+    gButtonSpriteSheetTexture.render( mPosition.x, mPosition.y, &gSpriteClips[ mCurrentSprite ] );
 }
