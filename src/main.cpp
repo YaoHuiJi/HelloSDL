@@ -52,6 +52,13 @@ bool init();
 
 void close();
 
+//The music that will be played
+Mix_Music* gMusic = NULL;
+
+//The sound effects that will be used
+Mix_Chunk* gMeow1 = NULL;
+Mix_Chunk* gMeow2 = NULL;
+
 SDL_Window* gWindow = nullptr;
 SDL_Renderer* gRenderer = nullptr;
 TTF_Font* gFont = NULL;
@@ -87,7 +94,7 @@ void showFPS(){
 bool init(){
     bool success = true;
 
-    if(SDL_Init(SDL_INIT_VIDEO)<0){
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)<0){
         printf("SDL初始化失败！");
         success = false;
     }else{
@@ -114,6 +121,12 @@ bool init(){
 
                 if(TTF_Init()== -1){
                     printf("SDL_ttf初始化失败!%s\n", TTF_GetError());
+                    success = false;
+                }
+
+                if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+                {
+                    printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
                     success = false;
                 }
             }
@@ -174,6 +187,37 @@ bool loadButtonSprite()
 	return success;
 }
 
+bool loadSound()
+{
+    //Loading success flag
+    bool success = true;
+
+    //Load music
+    gMusic = Mix_LoadMUS( "resources/sounds/wall_clock.wav" );
+    if( gMusic == NULL )
+    {
+        printf( "加载音乐失败! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    
+    //Load sound effects
+    gMeow1 = Mix_LoadWAV( "resources/sounds/meow_1.wav" );
+    if( gMeow1 == NULL )
+    {
+        printf( "加载音效失败! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+    
+    gMeow2 = Mix_LoadWAV( "resources/sounds/meow_2.wav" );
+    if( gMeow2 == NULL )
+    {
+        printf( "加载音效失败! SDL_mixer Error: %s\n", Mix_GetError() );
+        success = false;
+    }
+
+    return success;
+}
+
 bool loadMedia()
 {
     bool success = true;
@@ -206,6 +250,15 @@ bool loadMedia()
 }
 
 void close(){
+
+    Mix_FreeChunk(gMeow1);
+    Mix_FreeChunk(gMeow2);
+    gMeow1 = nullptr;
+    gMeow2 = nullptr;
+
+    Mix_FreeMusic(gMusic);
+    gMusic = nullptr;
+
     gButtonSpriteSheetTexture.free();
 
     gTextTexture.free();
@@ -219,6 +272,7 @@ void close(){
     gWindow = nullptr;
     gRenderer = nullptr;
 
+    Mix_Quit();
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
@@ -231,7 +285,7 @@ int main(int argc, char* args[])
     Uint8 b = 255;
     int frame = 0;
 
-    if(init()&&loadMedia()&&loadFont()&&loadButtonSprite()){
+    if(init()&&loadMedia()&&loadFont()&&loadButtonSprite()&&loadSound()){
         SDL_Event e; 
         bool quit = false; 
 
@@ -245,6 +299,8 @@ int main(int argc, char* args[])
                 if( e.type == SDL_QUIT ) quit = true; 
                 else if (e.type== SDL_KEYDOWN)
                 {
+                    Mix_Chunk* meows[] = {gMeow1,gMeow2}; 
+
                      switch( e.key.keysym.sym )
                         {
                             case SDLK_a:
@@ -266,19 +322,41 @@ int main(int argc, char* args[])
                             case SDLK_e:
                             flipType = SDL_FLIP_VERTICAL;
                             break;
-                            case SDLK_UP:
-                            frame+=1;
-                            if(frame>=EXPLOSION_ANIMATION_FRAMES){
-                                frame = 0;
+
+                            case SDLK_8:
+                            Mix_PlayChannel( -1, meows[rand()%2], 0 );
+                            break;
+
+                            case SDLK_9:
+                            //If there is no music playing
+                            if( Mix_PlayingMusic() == 0 )
+                            {
+                                //Play the music
+                                Mix_PlayMusic( gMusic, -1 );
+                            }
+                            //If music is being played
+                            else
+                            {
+                                //If the music is paused
+                                if( Mix_PausedMusic() == 1 )
+                                {
+                                    //Resume the music
+                                    Mix_ResumeMusic();
+                                }
+                                //If the music is playing
+                                else
+                                {
+                                    //Pause the music
+                                    Mix_PauseMusic();
+                                }
                             }
                             break;
                             
-                            case SDLK_DOWN:
-                            frame-=1;
-                            if(frame<0){
-                                frame = EXPLOSION_ANIMATION_FRAMES-1;
-                            }
+                            case SDLK_0:
+                            //Stop the music
+                            Mix_HaltMusic();
                             break;
+                            
                         }
                 }
                 
