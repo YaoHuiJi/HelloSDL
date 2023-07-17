@@ -66,6 +66,13 @@ class Dot
         //Shows the dot on the screen
         void render();
 
+        //Shows the dot on the screen relative to the camera
+        void render( int camX, int camY );
+
+         //Position accessors
+        int getPosX();
+        int getPosY();
+
     private:
         //The X and Y offsets of the dot
         int mPosX, mPosY;
@@ -108,6 +115,9 @@ class LButton{
         //Currently used global sprite
         LButtonSprite mCurrentSprite;
 };
+
+const int LEVEL_WIDTH = 1280;
+const int LEVEL_HEIGHT = 960;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -411,6 +421,9 @@ int main(int argc, char* args[])
 
         Dot dot;
 
+        //The camera area
+        SDL_Rect camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+
         bool useLTimerFPS = false;
         LTimer fpsTimer;
         std::stringstream fpsText;
@@ -529,6 +542,28 @@ int main(int argc, char* args[])
 
             dot.move();
 
+            //Center the camera over the dot
+            camera.x = ( dot.getPosX() + Dot::DOT_WIDTH / 2 ) - SCREEN_WIDTH / 2;
+            camera.y = ( dot.getPosY() + Dot::DOT_HEIGHT / 2 ) - SCREEN_HEIGHT / 2;
+
+            //Keep the camera in bounds
+            if( camera.x < 0 )
+            { 
+                camera.x = 0;
+            }
+            if( camera.y < 0 )
+            {
+                camera.y = 0;
+            }
+            if( camera.x > LEVEL_WIDTH - camera.w )
+            {
+                camera.x = LEVEL_WIDTH - camera.w;
+            }
+            if( camera.y > LEVEL_HEIGHT - camera.h )
+            {
+                camera.y = LEVEL_HEIGHT - camera.h;
+            }
+
             const Uint8* currentKeyStates = SDL_GetKeyboardState( nullptr );
 
             if(currentKeyStates[SDL_SCANCODE_T]){
@@ -540,7 +575,7 @@ int main(int argc, char* args[])
             SDL_RenderClear(gRenderer);
 
             gBackgroundTexture.setAlpha(255);
-            gBackgroundTexture.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
+            gBackgroundTexture.render(0,0,&camera);
 
             //gSpriteSheetTexture.setBlendMode(SDL_BLENDMODE_MUL);
             //gSpriteSheetTexture.setAlpha(128);
@@ -579,7 +614,7 @@ int main(int argc, char* args[])
             }
             gTimeTextTexture.render(SCREEN_WIDTH-330,0,-1,-1);
 
-            dot.render();
+            dot.render( camera.x, camera.y );
 
             SDL_RenderPresent(gRenderer);
 
@@ -823,7 +858,7 @@ void Dot::move()
     mPosX += mVelX;
 
     //If the dot went too far to the left or right
-    if( ( mPosX < 0 ) || ( mPosX + DOT_WIDTH > SCREEN_WIDTH ) )
+    if( ( mPosX < 0 ) || ( mPosX + DOT_WIDTH > LEVEL_WIDTH ) )
     {
         //Move back
         mPosX -= mVelX;
@@ -832,7 +867,7 @@ void Dot::move()
     mPosY += mVelY;
 
     //If the dot went too far up or down
-    if( ( mPosY < 0 ) || ( mPosY + DOT_HEIGHT > SCREEN_HEIGHT ) )
+    if( ( mPosY < 0 ) || ( mPosY + DOT_HEIGHT > LEVEL_HEIGHT ) )
     {
         //Move back
         mPosY -= mVelY;
@@ -843,4 +878,18 @@ void Dot::render()
 {
     //Show the dot
     gDotTexture.render( mPosX, mPosY,new SDL_Rect{0,0,gDotTexture.getWidth(),gDotTexture.getHeight()},0.5 );
+}
+
+void Dot::render( int camX, int camY )
+{
+    //Show the dot relative to the camera
+    gDotTexture.render( mPosX - camX, mPosY - camY , new SDL_Rect{0,0,gDotTexture.getWidth(),gDotTexture.getHeight()},0.5);
+}
+
+int Dot::getPosX(){
+    return mPosX;
+}
+
+int Dot::getPosY(){
+    return mPosY;
 }
