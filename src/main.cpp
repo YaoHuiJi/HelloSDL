@@ -10,6 +10,9 @@
 #include <iomanip>
 #include <chrono>
 
+//是否启用垂直同步(不启用的话使用自定义的fps capping逻辑)
+#define Enable_VSync
+
 class LTimer
 {
     public:
@@ -109,6 +112,7 @@ YEngine::LTexture gButtonSpriteSheetTexture;
 
 LButton gButtons[ TOTAL_BUTTONS ]; 
 
+
 /**
  * @brief 用两种算法显示FPS
  * 
@@ -168,9 +172,12 @@ bool init(){
             printf("Window初始化失败！");
             success = false;
         }else{
-            // gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
-
+            
+            #ifdef Enable_VSync
+            gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
+            #else
             gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED);
+            #endif // DEBUG
 
             if(!gRenderer){
                 printf("Renderer初始化失败！");
@@ -346,6 +353,11 @@ void close(){
 
 int main(int argc, char* args[])
 {
+    #ifdef Enable_VSync
+    printf("启用垂直同步\n");
+    #else
+    printf("没有启用垂直同步\n");
+    #endif
     Uint8 r = 255;
     Uint8 g = 255;
     Uint8 b = 255;
@@ -363,7 +375,9 @@ int main(int argc, char* args[])
         int countedFrames = 0;
         fpsTimer.start();
 
+        #ifndef Enable_VSync
         LTimer capTimer;
+        #endif
 
         LTimer timer;
         std::stringstream timeText;
@@ -373,7 +387,9 @@ int main(int argc, char* args[])
         SDL_RendererFlip flipType = SDL_FLIP_NONE;
         
         while( quit == false ){ 
+            #ifndef Enable_VSync
             capTimer.start();
+            #endif
             
             while( SDL_PollEvent( &e ) )
             { 
@@ -519,12 +535,14 @@ int main(int argc, char* args[])
 
             SDL_RenderPresent(gRenderer);
 
+            #ifndef Enable_VSync
             //如果帧结束的太早则延迟
             int frameTicks = capTimer.getTicks();
             if( frameTicks < SCREEN_TICKS_PER_FRAME )
             {
                 SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
             }
+            #endif
         }
     }
 
