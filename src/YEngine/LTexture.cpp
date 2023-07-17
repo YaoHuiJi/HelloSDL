@@ -1,8 +1,10 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include "LTexture.hpp"
 
 extern SDL_Renderer* gRenderer;
+extern TTF_Font* gFont;
 
 using namespace YEngine;
 
@@ -43,6 +45,32 @@ bool LTexture::loadFromFile(std::string path){
     mTexture = newTexture;
 
     return mTexture != NULL;
+}
+
+bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColor ){
+    free();
+
+    SDL_Surface* textSurface  = TTF_RenderUTF8_Solid(gFont, textureText.data(), textColor);
+
+    if(!textSurface){
+        printf("渲染文字失败! SDL_tff Error:%s\n" , TTF_GetError());
+    }else
+    {
+        mTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
+        if( mTexture == NULL )
+        {
+            printf( "渲染文字失败! SDL Error: %s\n", SDL_GetError() );
+        }
+        else
+        {
+            mWidth = textSurface->w;
+            mHeight = textSurface->h;
+        }
+
+        SDL_FreeSurface( textSurface );
+    }
+
+    return mTexture != nullptr;
 }
 
 void LTexture::free(){

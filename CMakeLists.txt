@@ -8,6 +8,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
+find_package(SDL2_mixer REQUIRED)
+find_package(SDL2_ttf REQUIRED)
 
 add_subdirectory(src/YEngine)
 
@@ -17,6 +19,8 @@ target_link_libraries(HelloSDL PRIVATE YEngine)
 
 target_link_libraries(HelloSDL PRIVATE SDL2::SDL2)
 target_link_libraries(HelloSDL PRIVATE SDL2_image::SDL2_image)
+target_link_libraries(HelloSDL PRIVATE SDL2_mixer::SDL2_mixer)
+target_link_libraries(HelloSDL PRIVATE SDL2_ttf::SDL2_ttf)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 

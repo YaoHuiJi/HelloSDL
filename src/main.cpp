@@ -1,23 +1,18 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
+#include <SDL_mixer.h>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
 #include "LTexture.hpp"
 #include <iostream>
+#include <iomanip>
 #include <chrono>
+
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
-
-void showFPS(){
-    static auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed_us = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    start = end;
-
-    std::cout << "FPS:" << (1000.0/elapsed_us) << std::endl;
-}
 
 bool init();
 
@@ -25,11 +20,30 @@ void close();
 
 SDL_Window* gWindow = nullptr;
 SDL_Renderer* gRenderer = nullptr;
+TTF_Font* gFont = NULL;
 
 const int EXPLOSION_ANIMATION_FRAMES = 32;
 SDL_Rect gSpriteClips[ EXPLOSION_ANIMATION_FRAMES ];
 YEngine::LTexture gSpriteSheetTexture;
 YEngine::LTexture gBackgroundTexture;
+YEngine::LTexture gTextTexture;
+YEngine::LTexture gFPSTexture;
+
+void showFPS(){
+    static auto start = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed_us = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    start = end;
+
+    double fps = 1000.0/elapsed_us;
+    std::stringstream stream;
+    stream << std::setprecision(2) << fps;
+
+    gFPSTexture.loadFromRenderedText("FPS:" + stream.str(),SDL_Color{255,255,255});
+
+    gFPSTexture.render(0,SCREEN_HEIGHT-30,-1);
+    //std::cout << "FPS:" << (1000.0/elapsed_us) << std::endl;
+}
 
 bool init(){
     bool success = true;
@@ -58,7 +72,33 @@ bool init(){
                     printf("SDL_image初始化失败!%s\n", IMG_GetError());
                     success = false;
                 }
+
+                if(TTF_Init()== -1){
+                    printf("SDL_ttf初始化失败!%s\n", TTF_GetError());
+                    success = false;
+                }
             }
+        }
+    }
+
+    return success;
+}
+
+bool loadFont(){
+    bool success = true;
+
+    gFont = TTF_OpenFont("resources/fonts/IPix.ttf",28);
+
+    if(!gFont){
+        printf( "加载字体失败! SDL_ttf Error: %s\n", TTF_GetError() );
+        success = false;
+    }else
+    {
+        SDL_Color textColor = {255,255,255};
+
+        if(!gTextTexture.loadFromRenderedText("你好啊，姚辉季!",textColor)){
+            printf("渲染文本失败!\n");
+            success = false;
         }
     }
 
@@ -98,6 +138,10 @@ bool loadMedia()
 
 void close(){
 
+    gTextTexture.free();
+    TTF_CloseFont( gFont );
+    gFont = NULL;
+
     gSpriteSheetTexture.free();
 
     SDL_DestroyRenderer(gRenderer);
@@ -105,6 +149,7 @@ void close(){
     gWindow = nullptr;
     gRenderer = nullptr;
 
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -116,7 +161,7 @@ int main(int argc, char* args[])
     Uint8 b = 255;
     int frame = 0;
 
-    if(init()&&loadMedia()){
+    if(init()&&loadMedia()&&loadFont()){
         SDL_Event e; 
         bool quit = false; 
 
@@ -191,7 +236,10 @@ int main(int argc, char* args[])
                 frame = 0;
             }
 
-            //showFPS();
+            //渲染文本
+            gTextTexture.render(0,0,-1,-1);
+
+            showFPS();
 
             SDL_RenderPresent(gRenderer);
         }

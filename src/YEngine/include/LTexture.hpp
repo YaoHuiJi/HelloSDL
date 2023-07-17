@@ -15,6 +15,9 @@ class LTexture
 
         bool loadFromFile(std::string path);
 
+        //Creates image from font string
+        bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
+
         void free();
 
         //Set color modulation
