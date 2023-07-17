@@ -44,6 +44,36 @@ class LTimer
         bool mStarted;
 };
 
+class Dot
+{
+    public:
+        //The dimensions of the dot
+        static const int DOT_WIDTH = 20;
+        static const int DOT_HEIGHT = 20;
+
+        //Maximum axis velocity of the dot
+        static const int DOT_VEL = 4;
+
+        //Initializes the variables
+        Dot();
+
+        //Takes key presses and adjusts the dot's velocity
+        void handleEvent( SDL_Event& e );
+
+        //Moves the dot
+        void move();
+
+        //Shows the dot on the screen
+        void render();
+
+    private:
+        //The X and Y offsets of the dot
+        int mPosX, mPosY;
+
+        //The velocity of the dot
+        int mVelX, mVelY;
+};
+
 const int BUTTON_WIDTH = 300;
 const int BUTTON_HEIGHT = 200;
 const int TOTAL_BUTTONS = 4;
@@ -106,6 +136,7 @@ YEngine::LTexture gBackgroundTexture;
 YEngine::LTexture gTextTexture;
 YEngine::LTexture gFPSTexture;
 YEngine::LTexture gTimeTextTexture;
+YEngine::LTexture gDotTexture;
 
 SDL_Rect gButtonSpriteClips[ BUTTON_SPRITE_TOTAL ];
 YEngine::LTexture gButtonSpriteSheetTexture;
@@ -319,10 +350,19 @@ bool loadMedia()
         }
     }
 
+    //Load dot texture
+	if( !gDotTexture.loadFromFile( "resources/images/logo.png" ) )
+	{
+		printf( "Failed to load dot texture!\n" );
+		success = false;
+	}
+
     return success;
 }
 
 void close(){
+
+    gDotTexture.free();
 
     Mix_FreeChunk(gMeow1);
     Mix_FreeChunk(gMeow2);
@@ -368,6 +408,8 @@ int main(int argc, char* args[])
         SDL_Event e; 
         
         bool quit = false; 
+
+        Dot dot;
 
         bool useLTimerFPS = false;
         LTimer fpsTimer;
@@ -475,6 +517,8 @@ int main(int argc, char* args[])
                             break;
                         }
                 }
+
+                dot.handleEvent(e);
                 
                 //Handle button events
                 for( int i = 0; i < TOTAL_BUTTONS; ++i )
@@ -482,6 +526,8 @@ int main(int argc, char* args[])
                     gButtons[ i ].handleEvent( &e );
                 }
             } 
+
+            dot.move();
 
             const Uint8* currentKeyStates = SDL_GetKeyboardState( nullptr );
 
@@ -532,6 +578,8 @@ int main(int argc, char* args[])
                 printf( "无法渲染计数器纹理!\n" );
             }
             gTimeTextTexture.render(SCREEN_WIDTH-330,0,-1,-1);
+
+            dot.render();
 
             SDL_RenderPresent(gRenderer);
 
@@ -728,4 +776,71 @@ bool LTimer::isPaused()
 {
     //Timer is running and paused
     return mPaused && mStarted;
+}
+
+Dot::Dot()
+{
+    //Initialize the offsets
+    mPosX = 0;
+    mPosY = 0;
+
+    //Initialize the velocity
+    mVelX = 0;
+    mVelY = 0;
+}
+
+void Dot::handleEvent( SDL_Event& e )
+{
+    //If a key was pressed
+    if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
+    {
+        //Adjust the velocity
+        switch( e.key.keysym.sym )
+        {
+            case SDLK_UP: mVelY -= DOT_VEL; break;
+            case SDLK_DOWN: mVelY += DOT_VEL; break;
+            case SDLK_LEFT: mVelX -= DOT_VEL; break;
+            case SDLK_RIGHT: mVelX += DOT_VEL; break;
+        }
+    }
+     //If a key was released
+    else if( e.type == SDL_KEYUP && e.key.repeat == 0 )
+    {
+        //Adjust the velocity
+        switch( e.key.keysym.sym )
+        {
+            case SDLK_UP: mVelY += DOT_VEL; break;
+            case SDLK_DOWN: mVelY -= DOT_VEL; break;
+            case SDLK_LEFT: mVelX += DOT_VEL; break;
+            case SDLK_RIGHT: mVelX -= DOT_VEL; break;
+        }
+    }
+}
+
+void Dot::move()
+{
+    //Move the dot left or right
+    mPosX += mVelX;
+
+    //If the dot went too far to the left or right
+    if( ( mPosX < 0 ) || ( mPosX + DOT_WIDTH > SCREEN_WIDTH ) )
+    {
+        //Move back
+        mPosX -= mVelX;
+    }
+    //Move the dot up or down
+    mPosY += mVelY;
+
+    //If the dot went too far up or down
+    if( ( mPosY < 0 ) || ( mPosY + DOT_HEIGHT > SCREEN_HEIGHT ) )
+    {
+        //Move back
+        mPosY -= mVelY;
+    }
+}
+
+void Dot::render()
+{
+    //Show the dot
+    gDotTexture.render( mPosX, mPosY,new SDL_Rect{0,0,gDotTexture.getWidth(),gDotTexture.getHeight()},0.5 );
 }
