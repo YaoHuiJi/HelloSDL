@@ -29,7 +29,7 @@ bool LTexture::loadFromFile(std::string path){
         SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format,255,255,255 ) );
 
         newTexture = SDL_CreateTextureFromSurface( gRenderer,loadedSurface);
-
+        
         if(newTexture==NULL){
             printf( "无法从表面(%s)生成材质 ! SDL Error: %s\n", path.c_str(), SDL_GetError() );
         }else{
@@ -58,6 +58,14 @@ void LTexture::setColor(Uint8 r ,Uint8 g, Uint8 b){
     SDL_SetTextureColorMod(mTexture,r,g,b);
 }
 
+void LTexture::setBlendMode( SDL_BlendMode blending ){
+    SDL_SetTextureBlendMode(mTexture, blending);
+}
+
+void LTexture::setAlpha( Uint8 alpha ){
+    SDL_SetTextureAlphaMod(mTexture, alpha);
+}
+
 void LTexture::render( int x, int y, int width, int height){
 
     SDL_Rect renderQuad = {x, y, width, height};
@@ -71,6 +79,22 @@ void LTexture::render( int x, int y, int width, int height){
     }else{
         SDL_RenderCopy( gRenderer, mTexture, NULL, &renderQuad);
     }
+}
+
+void LTexture::render(int x, int y , SDL_Rect* clip, double scale , double angle, SDL_Point* center, SDL_RendererFlip flip ){
+//Set rendering space and render to screen
+    SDL_Rect renderQuad = { x, y, mWidth, mHeight };
+
+    //Set clip rendering dimensions
+    if( clip != NULL )
+    {
+        renderQuad.w = clip->w*scale;
+        renderQuad.h = clip->h*scale;
+    }
+
+    //Render to screen
+    //SDL_RenderCopy( gRenderer, mTexture, clip, &renderQuad );
+    SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
 }
 
 int LTexture::getWidth(){

@@ -5,9 +5,19 @@
 #include <string>
 #include "LTexture.hpp"
 #include <iostream>
+#include <chrono>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+
+void showFPS(){
+    static auto start = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed_us = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    start = end;
+
+    std::cout << "FPS:" << (1000.0/elapsed_us) << std::endl;
+}
 
 bool init();
 
@@ -16,7 +26,9 @@ void close();
 SDL_Window* gWindow = nullptr;
 SDL_Renderer* gRenderer = nullptr;
 
-YEngine::LTexture gFooTexture;
+const int EXPLOSION_ANIMATION_FRAMES = 32;
+SDL_Rect gSpriteClips[ EXPLOSION_ANIMATION_FRAMES ];
+YEngine::LTexture gSpriteSheetTexture;
 YEngine::LTexture gBackgroundTexture;
 
 bool init(){
@@ -32,7 +44,7 @@ bool init(){
             printf("Window初始化失败！");
             success = false;
         }else{
-            gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED);
+            gRenderer = SDL_CreateRenderer(gWindow,-1,SDL_RENDERER_ACCELERATED| SDL_RENDERER_PRESENTVSYNC);
 
             if(!gRenderer){
                 printf("Renderer初始化失败！");
@@ -40,7 +52,9 @@ bool init(){
             }else{
                 SDL_SetRenderDrawColor(gRenderer,0xCC,0xCC,0xCC,0xFF);
 
-                if(!(IMG_Init(IMG_INIT_JPG) & IMG_INIT_JPG) ){
+                int flags = IMG_INIT_PNG | IMG_INIT_JPG;
+
+                if(!(IMG_Init(flags) & flags) ){
                     printf("SDL_image初始化失败!%s\n", IMG_GetError());
                     success = false;
                 }
@@ -55,17 +69,28 @@ bool loadMedia()
 {
     bool success = true;
 
-    if( !gFooTexture.loadFromFile( "resources/images/logo.jpg" ) )
+    if( !gSpriteSheetTexture.loadFromFile( "resources/images/explosion.png" ) )
     {
-        printf( "Failed to load Foo' texture image!\n" );
+        printf( "加载爆炸动画失败!\n" );
         success = false;
-    }
-    
-    //Load background texture
-    if( !gBackgroundTexture.loadFromFile( "resources/images/logo.jpg" ) )
-    {
-        printf( "Failed to load background texture image!\n" );
-        success = false;
+    }else{
+        gSpriteSheetTexture.setBlendMode(SDL_BLENDMODE_BLEND);
+        
+        for(int row = 0; row < 4; row++){
+            for(int col = 0; col < 8; col++){
+                gSpriteClips[ row*8+col ].x =   col*512;
+                gSpriteClips[ row*8+col ].y =   row*512;
+                gSpriteClips[ row*8+col ].w = 512;
+                gSpriteClips[ row*8+col ].h = 512;
+            }
+        }
+
+        //Load background texture
+        if( !gBackgroundTexture.loadFromFile( "resources/images/Yao_Logo_1.jpeg" ) )
+        {
+            printf( "Failed to load background texture!\n" );
+            success = false;
+        }
     }
 
     return success;
@@ -73,8 +98,7 @@ bool loadMedia()
 
 void close(){
 
-    gFooTexture.free();
-    gBackgroundTexture.free();
+    gSpriteSheetTexture.free();
 
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
@@ -87,12 +111,18 @@ void close(){
 
 int main(int argc, char* args[])
 {
-    int x = 0;
-    int y = 0;
+    Uint8 r = 255;
+    Uint8 g = 255;
+    Uint8 b = 255;
+    int frame = 0;
 
     if(init()&&loadMedia()){
         SDL_Event e; 
         bool quit = false; 
+
+        double degrees = 0;
+
+        SDL_RendererFlip flipType = SDL_FLIP_NONE;
         
         while( quit == false ){ 
             while( SDL_PollEvent( &e ) )
@@ -100,21 +130,68 @@ int main(int argc, char* args[])
                 if( e.type == SDL_QUIT ) quit = true; 
                 else if (e.type== SDL_KEYDOWN)
                 {
-                    if(e.key.keysym.sym == SDLK_r){
-                        x = rand()%SCREEN_WIDTH+1;
-                        y = rand()%SCREEN_HEIGHT+1;
-                    }
+                     switch( e.key.keysym.sym )
+                        {
+                            case SDLK_a:
+                            degrees -= 60;
+                            break;
+                            
+                            case SDLK_d:
+                            degrees += 60;
+                            break;
+
+                            case SDLK_q:
+                            flipType = SDL_FLIP_HORIZONTAL;
+                            break;
+
+                            case SDLK_w:
+                            flipType = SDL_FLIP_NONE;
+                            break;
+
+                            case SDLK_e:
+                            flipType = SDL_FLIP_VERTICAL;
+                            break;
+                            case SDLK_UP:
+                            frame+=1;
+                            if(frame>=EXPLOSION_ANIMATION_FRAMES){
+                                frame = 0;
+                            }
+                            break;
+                            
+                            case SDLK_DOWN:
+                            frame-=1;
+                            if(frame<0){
+                                frame = EXPLOSION_ANIMATION_FRAMES-1;
+                            }
+                            break;
+                        }
                 }
                 
             } 
             SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
             SDL_RenderClear(gRenderer);
 
+            gBackgroundTexture.setAlpha(255);
             gBackgroundTexture.render(0,0,SCREEN_WIDTH,SCREEN_HEIGHT);
 
-            int w,h;
-            SDL_QueryTexture(gFooTexture.getTexture(),nullptr,nullptr,&w,&h);
-            gFooTexture.render(60,60,w,h);
+            //gSpriteSheetTexture.setBlendMode(SDL_BLENDMODE_MUL);
+            //gSpriteSheetTexture.setAlpha(128);
+            gSpriteSheetTexture.setColor( 255, 255, 255 );
+
+            SDL_Rect* currentClip = &gSpriteClips[ frame / 4 ];
+
+            const double scale = 0.3;
+            const int spriteWidth = 512;
+
+            gSpriteSheetTexture.render(SCREEN_WIDTH/2-spriteWidth*scale/2,SCREEN_HEIGHT/2-spriteWidth*scale/2, currentClip, scale, degrees,nullptr,flipType);
+            
+            ++frame;
+
+            if(frame/4 >= EXPLOSION_ANIMATION_FRAMES){
+                frame = 0;
+            }
+
+            //showFPS();
 
             SDL_RenderPresent(gRenderer);
         }
