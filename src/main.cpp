@@ -45,7 +45,6 @@ class LButton{
         LButtonSprite mCurrentSprite;
 };
 
-
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
@@ -289,6 +288,17 @@ int main(int argc, char* args[])
                     gButtons[ i ].handleEvent( &e );
                 }
             } 
+
+            const Uint8* currentKeyStates = SDL_GetKeyboardState( nullptr );
+
+            if(currentKeyStates[SDL_SCANCODE_O]){
+                printf("O is pressed\n");
+            }
+
+            if(currentKeyStates[SDL_SCANCODE_P]){
+                printf("P is pressed\n");
+            }
+
             SDL_SetRenderDrawColor( gRenderer, 0xCC, 0xCC, 0xCC, 0xFF );
             SDL_RenderClear(gRenderer);
 
@@ -316,10 +326,10 @@ int main(int argc, char* args[])
             gTextTexture.render(0,0,-1,-1);
 
             //渲染buttons
-            for( int i = 0; i < TOTAL_BUTTONS; ++i )
-            {
-                gButtons[ i ].render();
-            }
+            // for( int i = 0; i < TOTAL_BUTTONS; ++i )
+            // {
+            //     gButtons[ i ].render();
+            // }
 
             showFPS();
 
@@ -407,6 +417,7 @@ void LButton::handleEvent( SDL_Event* e )
 
 void LButton::render()
 {
+    gButtonSpriteSheetTexture.setAlpha(60);
     //Show current button sprite
     gButtonSpriteSheetTexture.render( mPosition.x, mPosition.y, &gButtonSpriteClips[ mCurrentSprite ] );
 }
