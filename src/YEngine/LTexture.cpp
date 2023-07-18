@@ -18,7 +18,7 @@ LTexture::~LTexture(){
     free();
 }
 
-bool LTexture::loadFromFile(std::string path){
+bool LTexture::loadFromFile(std::string path, Uint8 colorKey_r, Uint8 colorKey_g, Uint8 colorKey_b){
     free();
 
     SDL_Texture* newTexture = NULL;
@@ -28,7 +28,7 @@ bool LTexture::loadFromFile(std::string path){
     if(loadedSurface == NULL){
         printf("加载图片(%s)失败! SDL_Error:%s\n",path.c_str(),SDL_GetError());
     }else{
-        SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format,255,255,255 ) );
+        SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format,colorKey_r,colorKey_g,colorKey_b ) );
 
         newTexture = SDL_CreateTextureFromSurface( gRenderer,loadedSurface);
         

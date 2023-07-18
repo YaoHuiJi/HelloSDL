@@ -13,6 +13,32 @@
 // 是否启用垂直同步(不启用的话使用自定义的fps capping逻辑)
 #define Enable_VSync
 
+//Particle count
+const int TOTAL_PARTICLES = 20;
+
+class Particle
+{
+    public:
+        //Initialize position and animation
+        Particle( int x, int y );
+
+        //Shows the particle
+        void render();
+
+        //Checks if particle is dead
+        bool isDead();
+
+    private:
+        //Offsets
+        int mPosX, mPosY;
+
+        //Current frame of animation
+        int mFrame;
+
+        //Type of particle
+        YEngine::LTexture *mTexture;
+};
+
 class LWindow
 {
 public:
@@ -94,10 +120,13 @@ public:
     static const int DOT_HEIGHT = 20;
 
     // Maximum axis velocity of the dot
-    static const int DOT_VEL = 4;
+    static const int DOT_VEL = 10;
 
     // Initializes the variables
     Dot();
+
+    //Deallocates particles
+    ~Dot();
 
     // Takes key presses and adjusts the dot's velocity
     void handleEvent(SDL_Event &e);
@@ -116,6 +145,11 @@ public:
     int getPosY();
 
 private:
+    //The particles
+    Particle* particles[ TOTAL_PARTICLES ];
+
+    //Shows the particles
+    void renderParticles();
     // The X and Y offsets of the dot
     int mPosX, mPosY;
 
@@ -189,7 +223,13 @@ YEngine::LTexture gBackgroundTexture;
 YEngine::LTexture gTextTexture;
 YEngine::LTexture gFPSTexture;
 YEngine::LTexture gTimeTextTexture;
+
+//Scene textures
 YEngine::LTexture gDotTexture;
+YEngine::LTexture gRedTexture;
+YEngine::LTexture gGreenTexture;
+YEngine::LTexture gBlueTexture;
+YEngine::LTexture gShimmerTexture;
 
 SDL_Rect gButtonSpriteClips[BUTTON_SPRITE_TOTAL];
 YEngine::LTexture gButtonSpriteSheetTexture;
@@ -426,12 +466,46 @@ bool loadMedia()
         }
     }
 
-    // Load dot texture
-    if (!gDotTexture.loadFromFile("resources/images/logo.png"))
+    //Load dot texture
+    if( !gDotTexture.loadFromFile( "resources/images/dot.bmp",0, 0xFF, 0xFF) )
     {
-        printf("Failed to load dot texture!\n");
+        printf( "Failed to load dot texture!1\n" );
         success = false;
     }
+
+    //Load red texture
+    if( !gRedTexture.loadFromFile( "resources/images/red.bmp" ,0, 0xFF, 0xFF) )
+    {
+        printf( "Failed to load red texture!2\n" );
+        success = false;
+    }
+
+    //Load green texture
+    if( !gGreenTexture.loadFromFile( "resources/images/green.bmp" ,0, 0xFF, 0xFF) )
+    {
+        printf( "Failed to load green texture!3\n" );
+        success = false;
+    }
+
+    //Load blue texture
+    if( !gBlueTexture.loadFromFile( "resources/images/blue.bmp" ,0, 0xFF, 0xFF) )
+    {
+        printf( "Failed to load blue texture!4\n" );
+        success = false;
+    }
+
+    //Load shimmer texture
+    if( !gShimmerTexture.loadFromFile( "resources/images/shimmer.bmp" ,0, 0xFF, 0xFF) )
+    {
+        printf( "Failed to load shimmer texture!5\n" );
+        success = false;
+    }
+    
+    //Set texture transparency
+    gRedTexture.setAlpha( 192 );
+    gGreenTexture.setAlpha( 192 );
+    gBlueTexture.setAlpha( 192 );
+    gShimmerTexture.setAlpha( 192 );
 
     return success;
 }
@@ -696,7 +770,8 @@ int main(int argc, char *args[])
                 }
                 gTimeTextTexture.render(SCREEN_WIDTH - 330, 0, -1, -1);
 
-                dot.render(camera.x, camera.y);
+                dot.render();
+                //dot.render(camera.x, camera.y);
 
                 SDL_RenderPresent(gRenderer);
 
@@ -898,13 +973,28 @@ bool LTimer::isPaused()
 
 Dot::Dot()
 {
-    // Initialize the offsets
-    mPosX = 0;
-    mPosY = 0;
+    //Initialize the offsets
+    mPosX = SCREEN_WIDTH/2 - DOT_WIDTH/2;
+    mPosY = SCREEN_HEIGHT/2 - DOT_HEIGHT/2;
 
-    // Initialize the velocity
+    //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+
+    //Initialize particles
+    for( int i = 0; i < TOTAL_PARTICLES; ++i )
+    {
+        particles[ i ] = new Particle( mPosX, mPosY );
+    }
+}
+
+Dot::~Dot()
+{
+    //Delete particles
+    for( int i = 0; i < TOTAL_PARTICLES; ++i )
+    {
+        delete particles[ i ];
+    }
 }
 
 void Dot::handleEvent(SDL_Event &e)
@@ -975,8 +1065,31 @@ void Dot::move()
 
 void Dot::render()
 {
-    // Show the dot
-    gDotTexture.render(mPosX, mPosY, new SDL_Rect{0, 0, gDotTexture.getWidth(), gDotTexture.getHeight()}, 0.5);
+    //Show the dot
+    gDotTexture.render( mPosX, mPosY, -1 );
+
+    //Show particles on top of dot
+    renderParticles();
+}
+
+void Dot::renderParticles()
+{
+    //Go through particles
+    for( int i = 0; i < TOTAL_PARTICLES; ++i )
+    {
+        //Delete and replace dead particles
+        if( particles[ i ]->isDead() )
+        {
+            delete particles[ i ];
+            particles[ i ] = new Particle( mPosX, mPosY );
+        }
+    }
+
+    //Show particles
+    for( int i = 0; i < TOTAL_PARTICLES; ++i )
+    {
+        particles[ i ]->render();
+    }
 }
 
 void Dot::render(int camX, int camY)
@@ -1150,4 +1263,42 @@ bool LWindow::hasKeyboardFocus()
 bool LWindow::isMinimized()
 {
     return mMinimized;
+}
+
+Particle::Particle( int x, int y )
+{
+    //Set offsets
+    mPosX = x - 5 + ( rand() % 25 );
+    mPosY = y - 5 + ( rand() % 25 );
+
+    //Initialize animation
+    mFrame = rand() % 5;
+
+    //Set type
+    switch( rand() % 3 )
+    {
+        case 0: mTexture = &gRedTexture; break;
+        case 1: mTexture = &gGreenTexture; break;
+        case 2: mTexture = &gBlueTexture; break;
+    }
+}
+
+void Particle::render()
+{
+    //Show image
+    mTexture->render( mPosX, mPosY, -1 );
+
+    //Show shimmer
+    if( mFrame % 2 == 0 )
+    {
+        gShimmerTexture.render( mPosX, mPosY , -1);
+    }
+
+    //Animate
+    mFrame++;
+}
+
+bool Particle::isDead()
+{
+    return mFrame > 10;
 }
