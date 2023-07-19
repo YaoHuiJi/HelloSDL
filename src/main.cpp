@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include <chrono>
+#include <sstream>
 
 // 是否启用垂直同步(不启用的话使用自定义的fps capping逻辑)
 #define Enable_VSync
