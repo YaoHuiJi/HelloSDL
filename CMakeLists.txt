@@ -12,6 +12,7 @@ find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 add_subdirectory(src/YEngine)
+add_subdirectory(src/1.TicTacToe)
 
 add_executable(HelloSDL src/main.cpp)
 
