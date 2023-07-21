@@ -12,7 +12,12 @@ find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 find_package(glfw3 REQUIRED)
-find_package(vulkan REQUIRED)
+
+find_package(Vulkan REQUIRED)
+if(Vulkan_FOUND)
+    message("Find vulkan success!")
+    include_directories(${Vulkan_INCLUDE_DIRS})
+endif()
 
 add_subdirectory(src/YEngine)
 add_subdirectory(src/1.TicTacToe)
@@ -21,8 +26,8 @@ add_executable(HelloSDL src/main.cpp)
 
 target_link_libraries(HelloSDL PRIVATE YEngine)
 
-target_link_libraries(HelloSDL PUBLIC glfw)
-target_link_libraries(HelloSDL PRIVATE Vulkan::Vulkan)
+target_link_libraries(HelloSDL PRIVATE glfw)
+target_link_libraries(HelloSDL PRIVATE ${Vulkan_LIBRARY})
 
 target_link_libraries(HelloSDL PRIVATE SDL2::SDL2)
 target_link_libraries(HelloSDL PRIVATE SDL2_image::SDL2_image)
