@@ -27,32 +27,30 @@
 // Particle count
 const int TOTAL_PARTICLES = 20;
 
-class Particle
-{
-    public:
-        //Initialize position and animation
-        Particle( int x, int y );
+class Particle {
+ public:
+        // Initialize position and animation
+        Particle(int x, int y);
 
-        //Shows the particle
+        // Shows the particle
         void render();
 
-        //Checks if particle is dead
+        // Checks if particle is dead
         bool isDead();
 
-    private:
-        //Offsets
+ private:
+        // Offsets
         int mPosX, mPosY;
 
-        //Current frame of animation
+        // Current frame of animation
         int mFrame;
 
-        //Type of particle
+        // Type of particle
         YEngine::LTexture *mTexture;
 };
 
-class LWindow
-{
-public:
+class LWindow {
+ public:
     // Intializes internals
     LWindow();
 
@@ -63,7 +61,7 @@ public:
     SDL_Renderer *createRenderer(Uint32 flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     // Handles window events
-    void handleEvent(SDL_Event &e);
+    void handleEvent(const SDL_Event &e);
 
     // Deallocates internals
     void free();
@@ -77,7 +75,7 @@ public:
     bool hasKeyboardFocus();
     bool isMinimized();
 
-private:
+ private:
     // Window data
     SDL_Window *mWindow;
 
@@ -92,9 +90,8 @@ private:
     bool mMinimized;
 };
 
-class LTimer
-{
-public:
+class LTimer {
+ public:
     // Initializes variables
     LTimer();
 
@@ -105,13 +102,13 @@ public:
     void unpause();
 
     // Gets the timer's time
-    Uint32 getTicks();
+    Uint32 getTicks() const;
 
     // Checks the status of the timer
     bool isStarted();
     bool isPaused();
 
-private:
+ private:
     // The clock time when the timer started
     Uint32 mStartTicks;
 
@@ -123,9 +120,8 @@ private:
     bool mStarted;
 };
 
-class Dot
-{
-public:
+class Dot {
+ public:
     // The dimensions of the dot
     static const int DOT_WIDTH = 20;
     static const int DOT_HEIGHT = 20;
@@ -136,11 +132,11 @@ public:
     // Initializes the variables
     Dot();
 
-    //Deallocates particles
+    // Deallocates particles
     ~Dot();
 
     // Takes key presses and adjusts the dot's velocity
-    void handleEvent(SDL_Event &e);
+    void handleEvent(const SDL_Event &e);
 
     // Moves the dot
     void move();
@@ -155,11 +151,11 @@ public:
     int getPosX();
     int getPosY();
 
-private:
-    //The particles
+ private:
+    // The particles
     Particle* particles[ TOTAL_PARTICLES ];
 
-    //Shows the particles
+    // Shows the particles
     void renderParticles();
     // The X and Y offsets of the dot
     int mPosX, mPosY;
@@ -172,8 +168,7 @@ const int BUTTON_WIDTH = 300;
 const int BUTTON_HEIGHT = 200;
 const int TOTAL_BUTTONS = 4;
 
-enum LButtonSprite
-{
+enum LButtonSprite {
     BUTTON_SPRITE_MOUSE_OUT = 0,
     BUTTON_SPRITE_MOUSE_OVER_MOTION = 1,
     BUTTON_SPRITE_MOUSE_DOWN = 2,
@@ -181,9 +176,8 @@ enum LButtonSprite
     BUTTON_SPRITE_TOTAL = 4
 };
 
-class LButton
-{
-public:
+class LButton {
+ public:
     // Initializes internal variables
     LButton();
 
@@ -196,7 +190,7 @@ public:
     // Shows button sprite
     void render();
 
-private:
+ private:
     // Top left position
     SDL_Point mPosition;
 
@@ -235,7 +229,7 @@ YEngine::LTexture gTextTexture;
 YEngine::LTexture gFPSTexture;
 YEngine::LTexture gTimeTextTexture;
 
-//Scene textures
+// Scene textures
 YEngine::LTexture gDotTexture;
 YEngine::LTexture gRedTexture;
 YEngine::LTexture gGreenTexture;
@@ -252,14 +246,10 @@ LButton gButtons[TOTAL_BUTTONS];
  *
  * @param useSDLTicks 是否使用SDL Ticks来计数
  */
-void showFPS(bool useSDLTicks, LTimer &fpsTimer, std::stringstream &timeText, int &countedFrames)
-{
-    if (useSDLTicks)
-    {
-
-        float avgFPS = countedFrames / (fpsTimer.getTicks() / 1000.f);
-        if (avgFPS > 2000000)
-        {
+void showFPS(bool useSDLTicks, const LTimer &fpsTimer, std::stringstream &timeText, int* countedFrames) {
+    if (useSDLTicks) {
+        float avgFPS = (*countedFrames) / (fpsTimer.getTicks() / 1000.f);
+        if (avgFPS > 2000000) {
             avgFPS = 0;
         }
 
@@ -267,19 +257,16 @@ void showFPS(bool useSDLTicks, LTimer &fpsTimer, std::stringstream &timeText, in
         timeText << "A.FPS:" << avgFPS;
 
         // Render text
-        if (!gFPSTexture.loadFromRenderedText(timeText.str().data(), SDL_Color{255, 255, 255}))
-        {
+        if (!gFPSTexture.loadFromRenderedText(timeText.str().data(), SDL_Color{255, 255, 255})) {
             printf("Unable to render FPS texture!\n");
         }
 
         gFPSTexture.render(0, SCREEN_HEIGHT - gFPSTexture.getHeight(), -1);
 
-        ++countedFrames;
+        ++*countedFrames;
 
-        // printf("FRames:%i Secs:%i\n ",countedFrames, fpsTimer.getTicks() / 1000);
-    }
-    else
-    {
+        // printf("FRames:%i Secs:%i\n ", countedFrames, fpsTimer.getTicks() / 1000);
+    } else {
         static auto start = std::chrono::high_resolution_clock::now();
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed_us = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -296,59 +283,45 @@ void showFPS(bool useSDLTicks, LTimer &fpsTimer, std::stringstream &timeText, in
     }
 }
 
-bool init()
-{
+bool init() {
     bool success = true;
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
-    {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         printf("SDL初始化失败！");
         success = false;
-    }
-    else
-    {
-        if (!gWindow.init())
-        {
+    } else {
+        if (!gWindow.init()) {
             printf("Window初始化失败！");
             success = false;
-        }
-        else
-        {
-
+        } else {
 #ifdef Enable_VSync
             gRenderer = gWindow.createRenderer();
 #else
             gRenderer = SDL_CreateRenderer(SDL_RENDERER_ACCELERATED);
-#endif // DEBUG
+#endif
 
-            if (!gRenderer)
-            {
+            if (!gRenderer) {
                 printf("Renderer初始化失败！");
                 success = false;
-            }
-            else
-            {
-                //设置一个跟设备无关的逻辑分辨率
-                SDL_RenderSetLogicalSize(gRenderer,SCREEN_WIDTH,SCREEN_HEIGHT);
+            } else {
+                // 设置一个跟设备无关的逻辑分辨率
+                SDL_RenderSetLogicalSize(gRenderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
                 SDL_SetRenderDrawColor(gRenderer, 0xCC, 0xCC, 0xCC, 0xFF);
 
                 int flags = IMG_INIT_PNG | IMG_INIT_JPG;
 
-                if (!(IMG_Init(flags) & flags))
-                {
+                if (!(IMG_Init(flags) & flags)) {
                     printf("SDL_image初始化失败!%s\n", IMG_GetError());
                     success = false;
                 }
 
-                if (TTF_Init() == -1)
-                {
+                if (TTF_Init() == -1) {
                     printf("SDL_ttf初始化失败!%s\n", TTF_GetError());
                     success = false;
                 }
 
-                if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
-                {
+                if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
                     printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
                     success = false;
                 }
@@ -359,23 +332,18 @@ bool init()
     return success;
 }
 
-bool loadFont()
-{
+bool loadFont() {
     bool success = true;
 
     gFont = TTF_OpenFont("resources/fonts/IPix.ttf", 28);
 
-    if (!gFont)
-    {
+    if (!gFont) {
         printf("加载字体失败! SDL_ttf Error: %s\n", TTF_GetError());
         success = false;
-    }
-    else
-    {
+    } else {
         SDL_Color textColor = {255, 255, 255};
 
-        if (!gTextTexture.loadFromRenderedText("你好啊，姚辉季!", textColor))
-        {
+        if (!gTextTexture.loadFromRenderedText("你好啊，姚辉季!", textColor)) {
             printf("渲染文本失败!\n");
             success = false;
         }
@@ -384,21 +352,16 @@ bool loadFont()
     return success;
 }
 
-bool loadButtonSprite()
-{
+bool loadButtonSprite() {
     bool success = true;
 
     // Load sprites
-    if (!gButtonSpriteSheetTexture.loadFromFile("resources/images/button.png"))
-    {
+    if (!gButtonSpriteSheetTexture.loadFromFile("resources/images/button.png")) {
         printf("加载按钮精灵表失败\n");
         success = false;
-    }
-    else
-    {
+    } else {
         // Set sprites
-        for (int i = 0; i < BUTTON_SPRITE_TOTAL; ++i)
-        {
+        for (int i = 0; i < BUTTON_SPRITE_TOTAL; ++i) {
             gButtonSpriteClips[i].x = 0;
             gButtonSpriteClips[i].y = i * 200;
             gButtonSpriteClips[i].w = BUTTON_WIDTH;
@@ -414,30 +377,26 @@ bool loadButtonSprite()
     return success;
 }
 
-bool loadSound()
-{
+bool loadSound() {
     // Loading success flag
     bool success = true;
 
     // Load music
     gMusic = Mix_LoadMUS("resources/sounds/wall_clock.wav");
-    if (gMusic == NULL)
-    {
+    if (gMusic == NULL) {
         printf("加载音乐失败! SDL_mixer Error: %s\n", Mix_GetError());
         success = false;
     }
 
     // Load sound effects
     gMeow1 = Mix_LoadWAV("resources/sounds/meow_1.wav");
-    if (gMeow1 == NULL)
-    {
+    if (gMeow1 == NULL) {
         printf("加载音效失败! SDL_mixer Error: %s\n", Mix_GetError());
         success = false;
     }
 
     gMeow2 = Mix_LoadWAV("resources/sounds/meow_2.wav");
-    if (gMeow2 == NULL)
-    {
+    if (gMeow2 == NULL) {
         printf("加载音效失败! SDL_mixer Error: %s\n", Mix_GetError());
         success = false;
     }
@@ -445,23 +404,17 @@ bool loadSound()
     return success;
 }
 
-bool loadMedia()
-{
+bool loadMedia() {
     bool success = true;
 
-    if (!gSpriteSheetTexture.loadFromFile("resources/images/explosion.png"))
-    {
+    if (!gSpriteSheetTexture.loadFromFile("resources/images/explosion.png")) {
         printf("加载爆炸动画失败!\n");
         success = false;
-    }
-    else
-    {
+    } else {
         gSpriteSheetTexture.setBlendMode(SDL_BLENDMODE_BLEND);
 
-        for (int row = 0; row < 4; row++)
-        {
-            for (int col = 0; col < 8; col++)
-            {
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 8; col++) {
                 gSpriteClips[row * 8 + col].x = col * 512;
                 gSpriteClips[row * 8 + col].y = row * 512;
                 gSpriteClips[row * 8 + col].w = 512;
@@ -470,60 +423,51 @@ bool loadMedia()
         }
 
         // Load background texture
-        if (!gBackgroundTexture.loadFromFile("resources/images/Yao_Logo_1.jpeg"))
-        {
+        if (!gBackgroundTexture.loadFromFile("resources/images/Yao_Logo_1.jpeg")) {
             printf("Failed to load background texture!\n");
             success = false;
         }
     }
 
-    //Load dot texture
-    if( !gDotTexture.loadFromFile( "resources/images/dot.bmp",0, 0xFF, 0xFF) )
-    {
-        printf( "Failed to load dot texture!1\n" );
+    // Load dot texture
+    if (!gDotTexture.loadFromFile("resources/images/dot.bmp", 0, 0xFF, 0xFF)) {
+        printf("Failed to load dot texture!1\n");
         success = false;
     }
 
-    //Load red texture
-    if( !gRedTexture.loadFromFile( "resources/images/red.bmp" ,0, 0xFF, 0xFF) )
-    {
-        printf( "Failed to load red texture!2\n" );
+    // Load red texture
+    if (!gRedTexture.loadFromFile("resources/images/red.bmp" , 0, 0xFF, 0xFF)) {
+        printf("Failed to load red texture!2\n");
         success = false;
     }
 
-    //Load green texture
-    if( !gGreenTexture.loadFromFile( "resources/images/green.bmp" ,0, 0xFF, 0xFF) )
-    {
-        printf( "Failed to load green texture!3\n" );
+    // Load green texture
+    if (!gGreenTexture.loadFromFile("resources/images/green.bmp" , 0, 0xFF, 0xFF)) {
+        printf("Failed to load green texture!3\n");
         success = false;
     }
 
-    //Load blue texture
-    if( !gBlueTexture.loadFromFile( "resources/images/blue.bmp" ,0, 0xFF, 0xFF) )
-    {
-        printf( "Failed to load blue texture!4\n" );
+    // Load blue texture
+    if (!gBlueTexture.loadFromFile("resources/images/blue.bmp" , 0, 0xFF, 0xFF)) {
+        printf("Failed to load blue texture!4\n");
         success = false;
     }
 
-    //Load shimmer texture
-    if( !gShimmerTexture.loadFromFile( "resources/images/shimmer.bmp" ,0, 0xFF, 0xFF) )
-    {
-        printf( "Failed to load shimmer texture!5\n" );
+    // Load shimmer texture
+    if (!gShimmerTexture.loadFromFile("resources/images/shimmer.bmp" , 0, 0xFF, 0xFF)) {
+        printf("Failed to load shimmer texture!5\n");
         success = false;
     }
-    
-    //Set texture transparency
-    gRedTexture.setAlpha( 192 );
-    gGreenTexture.setAlpha( 192 );
-    gBlueTexture.setAlpha( 192 );
-    gShimmerTexture.setAlpha( 192 );
+    // Set texture transparency
+    gRedTexture.setAlpha(192);
+    gGreenTexture.setAlpha(192);
+    gBlueTexture.setAlpha(192);
+    gShimmerTexture.setAlpha(192);
 
     return success;
 }
 
-void close()
-{
-
+void close() {
     gDotTexture.free();
 
     Mix_FreeChunk(gMeow1);
@@ -552,8 +496,7 @@ void close()
     SDL_Quit();
 }
 
-int main(int argc, char *args[])
-{
+int main(int argc, char *args[]) {
 #ifdef Enable_VSync
     printf("启用垂直同步\n");
 #else
@@ -564,9 +507,7 @@ int main(int argc, char *args[])
     Uint8 b = 255;
     int frame = 0;
 
-    if (init() && loadMedia() && loadFont() && loadButtonSprite() && loadSound())
-    {
-
+    if (init() && loadMedia() && loadFont() && loadButtonSprite() && loadSound()) {
         SDL_Event e;
 
         bool quit = false;
@@ -593,22 +534,18 @@ int main(int argc, char *args[])
 
         SDL_RendererFlip flipType = SDL_FLIP_NONE;
 
-        while (quit == false)
-        {
+        while (quit == false) {
 #ifndef Enable_VSync
             capTimer.start();
 #endif
 
-            while (SDL_PollEvent(&e))
-            {
-                if (e.type == SDL_QUIT)
+            while (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) {
                     quit = true;
-                else if (e.type == SDL_KEYDOWN)
-                {
+                } else if (e.type == SDL_KEYDOWN) {
                     Mix_Chunk *meows[] = {gMeow1, gMeow2};
 
-                    switch (e.key.keysym.sym)
-                    {
+                    switch (e.key.keysym.sym) {
                     case SDLK_a:
                         degrees -= 60;
                         break;
@@ -635,23 +572,15 @@ int main(int argc, char *args[])
 
                     case SDLK_9:
                         // If there is no music playing
-                        if (Mix_PlayingMusic() == 0)
-                        {
+                        if (Mix_PlayingMusic() == 0) {
                             // Play the music
                             Mix_PlayMusic(gMusic, -1);
-                        }
-                        // If music is being played
-                        else
-                        {
+                        } else {
                             // If the music is paused
-                            if (Mix_PausedMusic() == 1)
-                            {
+                            if (Mix_PausedMusic() == 1) {
                                 // Resume the music
                                 Mix_ResumeMusic();
-                            }
-                            // If the music is playing
-                            else
-                            {
+                            } else {
                                 // Pause the music
                                 Mix_PauseMusic();
                             }
@@ -664,23 +593,17 @@ int main(int argc, char *args[])
                         break;
 
                     case SDLK_s:
-                        if (timer.isStarted())
-                        {
+                        if (timer.isStarted()) {
                             timer.stop();
-                        }
-                        else
-                        {
+                        } else {
                             timer.start();
                         }
                         break;
 
                     case SDLK_p:
-                        if (timer.isPaused())
-                        {
+                        if (timer.isPaused()) {
                             timer.unpause();
-                        }
-                        else
-                        {
+                        } else {
                             timer.pause();
                         }
                         break;
@@ -695,16 +618,13 @@ int main(int argc, char *args[])
                 gWindow.handleEvent(e);
 
                 // Handle button events
-                for (int i = 0; i < TOTAL_BUTTONS; ++i)
-                {
+                for (int i = 0; i < TOTAL_BUTTONS; ++i) {
                     gButtons[i].handleEvent(&e);
                 }
             }
 
             // 只有在窗口没有最小化时才渲染
-            if (!gWindow.isMinimized())
-            {
-
+            if (!gWindow.isMinimized()) {
                 dot.move();
 
                 // Center the camera over the dot
@@ -712,27 +632,22 @@ int main(int argc, char *args[])
                 camera.y = (dot.getPosY() + Dot::DOT_HEIGHT / 2) - SCREEN_HEIGHT / 2;
 
                 // Keep the camera in bounds
-                if (camera.x < 0)
-                {
+                if (camera.x < 0) {
                     camera.x = 0;
                 }
-                if (camera.y < 0)
-                {
+                if (camera.y < 0) {
                     camera.y = 0;
                 }
-                if (camera.x > LEVEL_WIDTH - camera.w)
-                {
+                if (camera.x > LEVEL_WIDTH - camera.w) {
                     camera.x = LEVEL_WIDTH - camera.w;
                 }
-                if (camera.y > LEVEL_HEIGHT - camera.h)
-                {
+                if (camera.y > LEVEL_HEIGHT - camera.h) {
                     camera.y = LEVEL_HEIGHT - camera.h;
                 }
 
                 const Uint8 *currentKeyStates = SDL_GetKeyboardState(nullptr);
 
-                if (currentKeyStates[SDL_SCANCODE_T])
-                {
+                if (currentKeyStates[SDL_SCANCODE_T]) {
                     // 按下键时，此处会被调用很多次
                     useLTimerFPS = !useLTimerFPS;
                 }
@@ -756,8 +671,7 @@ int main(int argc, char *args[])
 
                 ++frame;
 
-                if (frame / 4 >= EXPLOSION_ANIMATION_FRAMES)
-                {
+                if (frame / 4 >= EXPLOSION_ANIMATION_FRAMES) {
                     frame = 0;
                 }
 
@@ -765,32 +679,30 @@ int main(int argc, char *args[])
                 gTextTexture.render(0, 0, -1, -1);
 
                 // 渲染buttons
-                //  for( int i = 0; i < TOTAL_BUTTONS; ++i )
+                // for (int i = 0; i < TOTAL_BUTTONS; ++i)
                 //  {
                 //      gButtons[ i ].render();
                 //  }
 
-                showFPS(useLTimerFPS, fpsTimer, fpsText, countedFrames);
+                showFPS(useLTimerFPS, fpsTimer, fpsText, &countedFrames);
 
                 timeText.str("");
                 timeText << "自上次开始的秒数:" << (timer.getTicks() / 1000.f);
 
-                if (!gTimeTextTexture.loadFromRenderedText(timeText.str().c_str(), SDL_Color{255, 255, 255}))
-                {
+                if (!gTimeTextTexture.loadFromRenderedText(timeText.str().c_str(), SDL_Color{255, 255, 255})) {
                     printf("无法渲染计数器纹理!\n");
                 }
                 gTimeTextTexture.render(SCREEN_WIDTH - 330, 0, -1, -1);
 
                 dot.render();
-                //dot.render(camera.x, camera.y);
+                // dot.render(camera.x, camera.y);
 
                 SDL_RenderPresent(gRenderer);
 
 #ifndef Enable_VSync
                 // 如果帧结束的太早则延迟
                 int frameTicks = capTimer.getTicks();
-                if (frameTicks < SCREEN_TICKS_PER_FRAME)
-                {
+                if (frameTicks < SCREEN_TICKS_PER_FRAME) {
                     SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
                 }
 #endif
@@ -803,25 +715,21 @@ int main(int argc, char *args[])
     return 0;
 }
 
-LButton::LButton()
-{
+LButton::LButton() {
     mPosition.x = 0;
     mPosition.y = 0;
 
     mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
 }
 
-void LButton::setPosition(int x, int y)
-{
+void LButton::setPosition(int x, int y) {
     mPosition.x = x;
     mPosition.y = y;
 }
 
-void LButton::handleEvent(SDL_Event *e)
-{
+void LButton::handleEvent(SDL_Event *e) {
     // If mouse event happened
-    if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP)
-    {
+    if (e->type == SDL_MOUSEMOTION || e->type == SDL_MOUSEBUTTONDOWN || e->type == SDL_MOUSEBUTTONUP) {
         // Get mouse position
         int x, y;
         SDL_GetMouseState(&x, &y);
@@ -830,36 +738,21 @@ void LButton::handleEvent(SDL_Event *e)
         bool inside = true;
 
         // Mouse is left of the button
-        if (x < mPosition.x)
-        {
+        if (x < mPosition.x) {
             inside = false;
-        }
-        // Mouse is right of the button
-        else if (x > mPosition.x + BUTTON_WIDTH)
-        {
+        } else if (x > mPosition.x + BUTTON_WIDTH) {
             inside = false;
-        }
-        // Mouse above the button
-        else if (y < mPosition.y)
-        {
+        } else if (y < mPosition.y) {
             inside = false;
-        }
-        // Mouse below the button
-        else if (y > mPosition.y + BUTTON_HEIGHT)
-        {
+        } else if (y > mPosition.y + BUTTON_HEIGHT) {
             inside = false;
         }
         // Mouse is outside button
-        if (!inside)
-        {
+        if (!inside) {
             mCurrentSprite = BUTTON_SPRITE_MOUSE_OUT;
-        }
-        // Mouse is inside button
-        else
-        {
+        } else {
             // Set mouse over sprite
-            switch (e->type)
-            {
+            switch (e->type) {
             case SDL_MOUSEMOTION:
                 mCurrentSprite = BUTTON_SPRITE_MOUSE_OVER_MOTION;
                 break;
@@ -876,15 +769,13 @@ void LButton::handleEvent(SDL_Event *e)
     }
 }
 
-void LButton::render()
-{
+void LButton::render() {
     gButtonSpriteSheetTexture.setAlpha(60);
     // Show current button sprite
     gButtonSpriteSheetTexture.render(mPosition.x, mPosition.y, &gButtonSpriteClips[mCurrentSprite]);
 }
 
-LTimer::LTimer()
-{
+LTimer::LTimer() {
     // Initialize the variables
     mStartTicks = 0;
     mPausedTicks = 0;
@@ -893,8 +784,7 @@ LTimer::LTimer()
     mStarted = false;
 }
 
-void LTimer::start()
-{
+void LTimer::start() {
     mStarted = true;
 
     mPaused = false;
@@ -903,8 +793,7 @@ void LTimer::start()
     mPausedTicks = 0;
 }
 
-void LTimer::stop()
-{
+void LTimer::stop() {
     // Stop the timer
     mStarted = false;
 
@@ -916,11 +805,9 @@ void LTimer::stop()
     mPausedTicks = 0;
 }
 
-void LTimer::pause()
-{
+void LTimer::pause() {
     // If the timer is running and isn't already paused
-    if (mStarted && !mPaused)
-    {
+    if (mStarted && !mPaused) {
         // Pause the timer
         mPaused = true;
 
@@ -930,11 +817,9 @@ void LTimer::pause()
     }
 }
 
-void LTimer::unpause()
-{
+void LTimer::unpause() {
     // If the timer is running and paused
-    if (mStarted && mPaused)
-    {
+    if (mStarted && mPaused) {
         // Unpause the timer
         mPaused = false;
 
@@ -946,22 +831,17 @@ void LTimer::unpause()
     }
 }
 
-Uint32 LTimer::getTicks()
-{
+Uint32 LTimer::getTicks() const {
     // The actual timer time
     Uint32 time = 0;
 
     // If the timer is running
-    if (mStarted)
-    {
+    if (mStarted) {
         // If the timer is paused
-        if (mPaused)
-        {
+        if (mPaused) {
             // Return the number of ticks when the timer was paused
             time = mPausedTicks;
-        }
-        else
-        {
+        } else {
             // Return the current time minus the start time
             time = SDL_GetTicks() - mStartTicks;
         }
@@ -970,52 +850,43 @@ Uint32 LTimer::getTicks()
     return time;
 }
 
-bool LTimer::isStarted()
-{
+bool LTimer::isStarted() {
     // Timer is running and paused or unpaused
     return mStarted;
 }
 
-bool LTimer::isPaused()
-{
+bool LTimer::isPaused() {
     // Timer is running and paused
     return mPaused && mStarted;
 }
 
-Dot::Dot()
-{
-    //Initialize the offsets
+Dot::Dot() {
+    // Initialize the offsets
     mPosX = SCREEN_WIDTH/2 - DOT_WIDTH/2;
     mPosY = SCREEN_HEIGHT/2 - DOT_HEIGHT/2;
 
-    //Initialize the velocity
+    // Initialize the velocity
     mVelX = 0;
     mVelY = 0;
 
-    //Initialize particles
-    for( int i = 0; i < TOTAL_PARTICLES; ++i )
-    {
-        particles[ i ] = new Particle( mPosX, mPosY );
+    // Initialize particles
+    for (int i = 0; i < TOTAL_PARTICLES; ++i) {
+        particles[ i ] = new Particle(mPosX, mPosY);
     }
 }
 
-Dot::~Dot()
-{
-    //Delete particles
-    for( int i = 0; i < TOTAL_PARTICLES; ++i )
-    {
+Dot::~Dot() {
+    // Delete particles
+    for (int i = 0; i < TOTAL_PARTICLES; ++i) {
         delete particles[ i ];
     }
 }
 
-void Dot::handleEvent(SDL_Event &e)
-{
+void Dot::handleEvent(const SDL_Event &e) {
     // If a key was pressed
-    if (e.type == SDL_KEYDOWN && e.key.repeat == 0)
-    {
+    if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
         // Adjust the velocity
-        switch (e.key.keysym.sym)
-        {
+        switch (e.key.keysym.sym) {
         case SDLK_UP:
             mVelY -= DOT_VEL;
             break;
@@ -1029,13 +900,9 @@ void Dot::handleEvent(SDL_Event &e)
             mVelX += DOT_VEL;
             break;
         }
-    }
-    // If a key was released
-    else if (e.type == SDL_KEYUP && e.key.repeat == 0)
-    {
+    } else if (e.type == SDL_KEYUP && e.key.repeat == 0) {
         // Adjust the velocity
-        switch (e.key.keysym.sym)
-        {
+        switch (e.key.keysym.sym) {
         case SDLK_UP:
             mVelY += DOT_VEL;
             break;
@@ -1052,14 +919,12 @@ void Dot::handleEvent(SDL_Event &e)
     }
 }
 
-void Dot::move()
-{
+void Dot::move() {
     // Move the dot left or right
     mPosX += mVelX;
 
     // If the dot went too far to the left or right
-    if ((mPosX < 0) || (mPosX + DOT_WIDTH > LEVEL_WIDTH))
-    {
+    if ((mPosX < 0) || (mPosX + DOT_WIDTH > LEVEL_WIDTH)) {
         // Move back
         mPosX -= mVelX;
     }
@@ -1067,60 +932,50 @@ void Dot::move()
     mPosY += mVelY;
 
     // If the dot went too far up or down
-    if ((mPosY < 0) || (mPosY + DOT_HEIGHT > LEVEL_HEIGHT))
-    {
+    if ((mPosY < 0) || (mPosY + DOT_HEIGHT > LEVEL_HEIGHT)) {
         // Move back
         mPosY -= mVelY;
     }
 }
 
-void Dot::render()
-{
-    //Show the dot
-    gDotTexture.render( mPosX, mPosY, -1 );
+void Dot::render() {
+    // Show the dot
+    gDotTexture.render(mPosX, mPosY, -1);
 
-    //Show particles on top of dot
+    // Show particles on top of dot
     renderParticles();
 }
 
-void Dot::renderParticles()
-{
-    //Go through particles
-    for( int i = 0; i < TOTAL_PARTICLES; ++i )
-    {
-        //Delete and replace dead particles
-        if( particles[ i ]->isDead() )
-        {
+void Dot::renderParticles() {
+    // Go through particles
+    for (int i = 0; i < TOTAL_PARTICLES; ++i) {
+        // Delete and replace dead particles
+        if (particles[ i ]->isDead()) {
             delete particles[ i ];
-            particles[ i ] = new Particle( mPosX, mPosY );
+            particles[ i ] = new Particle(mPosX, mPosY);
         }
     }
 
-    //Show particles
-    for( int i = 0; i < TOTAL_PARTICLES; ++i )
-    {
+    // Show particles
+    for (int i = 0; i < TOTAL_PARTICLES; ++i) {
         particles[ i ]->render();
     }
 }
 
-void Dot::render(int camX, int camY)
-{
+void Dot::render(int camX, int camY) {
     // Show the dot relative to the camera
     gDotTexture.render(mPosX - camX, mPosY - camY, new SDL_Rect{0, 0, gDotTexture.getWidth(), gDotTexture.getHeight()}, 0.5);
 }
 
-int Dot::getPosX()
-{
+int Dot::getPosX() {
     return mPosX;
 }
 
-int Dot::getPosY()
-{
+int Dot::getPosY() {
     return mPosY;
 }
 
-LWindow::LWindow()
-{
+LWindow::LWindow() {
     mWindow = NULL;
     mMouseFocus = false;
     mKeyboardFocus = false;
@@ -1130,13 +985,11 @@ LWindow::LWindow()
     mHeight = 0;
 }
 
-bool LWindow::init()
-{
+bool LWindow::init() {
     // Create window
     mWindow = SDL_CreateWindow("Lazyfoo's SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-    if (mWindow != NULL)
-    {
+    if (mWindow != NULL) {
         mMouseFocus = true;
         mKeyboardFocus = true;
         mWidth = SCREEN_WIDTH;
@@ -1146,21 +999,17 @@ bool LWindow::init()
     return mWindow != NULL;
 }
 
-SDL_Renderer *LWindow::createRenderer(Uint32 flags)
-{
+SDL_Renderer *LWindow::createRenderer(Uint32 flags) {
     return SDL_CreateRenderer(mWindow, -1, flags);
 }
 
-void LWindow::handleEvent(SDL_Event &e)
-{
+void LWindow::handleEvent(const SDL_Event &e) {
     // Window event occured
-    if (e.type == SDL_WINDOWEVENT)
-    {
+    if (e.type == SDL_WINDOWEVENT) {
         // Caption update flag
         bool updateCaption = false;
 
-        switch (e.window.event)
-        {
+        switch (e.window.event) {
         // Get new dimensions and repaint on window size change
         case SDL_WINDOWEVENT_SIZE_CHANGED:
             mWidth = e.window.data1;
@@ -1214,23 +1063,16 @@ void LWindow::handleEvent(SDL_Event &e)
         }
 
         // Update window caption with new data
-        if (updateCaption)
-        {
+        if (updateCaption) {
             std::stringstream caption;
             caption << "Lazyfoo's SDL Tutorial - MouseFocus:" << ((mMouseFocus) ? "On" : "Off") << " KeyboardFocus:" << ((mKeyboardFocus) ? "On" : "Off");
             SDL_SetWindowTitle(mWindow, caption.str().c_str());
         }
-    }
-    // Enter exit full screen on return key
-    else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN)
-    {
-        if (mFullScreen)
-        {
+    }  else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN) {
+        if (mFullScreen) {
             SDL_SetWindowFullscreen(mWindow, SDL_FALSE);
             mFullScreen = false;
-        }
-        else
-        {
+        } else {
             SDL_SetWindowFullscreen(mWindow, SDL_TRUE);
             mFullScreen = true;
             mMinimized = false;
@@ -1238,78 +1080,68 @@ void LWindow::handleEvent(SDL_Event &e)
     }
 }
 
-void LWindow::free()
-{
-	if( mWindow != NULL )
-	{
-		SDL_DestroyWindow( mWindow );
-	}
+void LWindow::free() {
+    if (mWindow != NULL) {
+        SDL_DestroyWindow(mWindow);
+    }
 
-	mMouseFocus = false;
-	mKeyboardFocus = false;
-	mWidth = 0;
-	mHeight = 0;
+    mMouseFocus = false;
+    mKeyboardFocus = false;
+    mWidth = 0;
+    mHeight = 0;
 }
 
-int LWindow::getWidth()
-{
+int LWindow::getWidth() {
     return mWidth;
 }
 
-int LWindow::getHeight()
-{
+int LWindow::getHeight() {
     return mHeight;
 }
 
-bool LWindow::hasMouseFocus()
-{
+bool LWindow::hasMouseFocus() {
     return mMouseFocus;
 }
 
-bool LWindow::hasKeyboardFocus()
-{
+bool LWindow::hasKeyboardFocus() {
     return mKeyboardFocus;
 }
 
-bool LWindow::isMinimized()
-{
+bool LWindow::isMinimized() {
     return mMinimized;
 }
 
-Particle::Particle( int x, int y )
-{
-    //Set offsets
-    mPosX = x - 5 + ( rand() % 25 );
-    mPosY = y - 5 + ( rand() % 25 );
+Particle::Particle(int x, int y) {
+    unsigned int seed = static_cast<unsigned int>(std::time(nullptr));
 
-    //Initialize animation
-    mFrame = rand() % 5;
+    // Set offsets
+    mPosX = x - 5 + (rand_r(&seed) % 25);
+    mPosY = y - 5 + (rand_r(&seed) % 25);
 
-    //Set type
-    switch( rand() % 3 )
-    {
+    // Initialize animation
+    mFrame = rand_r(&seed) % 5;
+
+    // Set type
+    switch (rand_r(&seed) % 3) {
         case 0: mTexture = &gRedTexture; break;
         case 1: mTexture = &gGreenTexture; break;
         case 2: mTexture = &gBlueTexture; break;
     }
 }
 
-void Particle::render()
-{
-    //Show image
-    mTexture->render( mPosX, mPosY, -1 );
+void Particle::render() {
+    // Show image
+    mTexture->render(mPosX, mPosY, -1);
 
-    //Show shimmer
-    if( mFrame % 2 == 0 )
-    {
-        gShimmerTexture.render( mPosX, mPosY , -1);
+    // Show shimmer
+    if (mFrame % 2 == 0) {
+        gShimmerTexture.render(mPosX, mPosY , -1);
     }
 
-    //Animate
+    // Animate
     mFrame++;
 }
 
-bool Particle::isDead()
-{
+bool Particle::isDead() {
     return mFrame > 10;
 }
