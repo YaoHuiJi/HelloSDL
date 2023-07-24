@@ -5,7 +5,7 @@ find_package(SDL2_ttf REQUIRED)
 
 add_library (YEngine LTexture.cpp)
 
-target_include_directories (YEngine PUBLIC include)
+#target_include_directories (YEngine PUBLIC .)
 
 target_link_libraries(YEngine PRIVATE SDL2::SDL2)
 target_link_libraries(YEngine PRIVATE SDL2_image::SDL2_image)

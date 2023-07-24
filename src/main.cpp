@@ -1,3 +1,17 @@
+/**
+ * @file main.cpp
+ * @author Yao
+ * @brief 
+ * @version 0.1
+ * @date 2023-07-24
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <sstream>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -5,16 +19,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include "LTexture.hpp"
-#include <iostream>
-#include <iomanip>
-#include <chrono>
-#include <sstream>
+#include "YEngine/LTexture.hpp"
 
 // 是否启用垂直同步(不启用的话使用自定义的fps capping逻辑)
 #define Enable_VSync
 
-//Particle count
+// Particle count
 const int TOTAL_PARTICLES = 20;
 
 class Particle
