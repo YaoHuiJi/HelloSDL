@@ -1,3 +1,13 @@
+/**
+ * @file main.cpp
+ * @author Yao
+ * @brief 
+ * @version 0.1
+ * @date 2023-07-24
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <SDL.h>
 #include <SDL_image.h>
 #include <cstdio>
@@ -7,54 +17,51 @@ SDL_Renderer* renderer;
 
 SDL_Texture* sprites;
 
-SDL_Rect xSpriteClip{0,0,32,32};
-SDL_Rect oSpriteClip{32,0,32,32};
+SDL_Rect xSpriteClip{0, 0, 32, 32};
+SDL_Rect oSpriteClip{32, 0, 32, 32};
 
 int SCREEN_WIDTH = 640;
 int SCREEN_HEIGHT = 480;
 
 int main(int argc, const char** argv) {
-
-    if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO)<0)
-    {
+    if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
         printf("初始化SDL失败%s\n", SDL_GetError());
-    }else{
-        window = SDL_CreateWindow("Tic Tac Toe",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,SCREEN_WIDTH,SCREEN_HEIGHT,SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE);
+    } else {
+        window = SDL_CreateWindow("Tic Tac Toe", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN|SDL_WINDOW_RESIZABLE);
 
-        if(!window){
+        if ( !window ) {
             printf("初始化窗口失败%s\n", SDL_GetError());
-        }else{
+        } else {
             renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
 
-            if(!renderer){
+            if ( !renderer ) {
                 printf("初始化渲染器失败%s\n", SDL_GetError());
-            }else{
+            } else {
                 int flags = IMG_INIT_PNG;
-                if((IMG_Init(flags)&flags) == 0 ){
+                if ( (IMG_Init(flags) & flags) == 0 ) {
                     printf("初始化SLD_image失败%s\n", IMG_GetError());
-                }else{
+                } else {
                     SDL_Surface* spriteSheetSurface = IMG_Load("resources/images/tictactoe.png");
 
-                    if(!spriteSheetSurface){
+                    if ( !spriteSheetSurface ) {
                         printf("加载精灵表失败%s\n", IMG_GetError());
-                    }else{
-                        sprites = SDL_CreateTextureFromSurface(renderer,spriteSheetSurface);
+                    } else {
+                        sprites = SDL_CreateTextureFromSurface(renderer, spriteSheetSurface);
 
-                        if(!sprites){
+                        if ( !sprites ) {
                             printf("创建精灵表纹理失败%s\n", SDL_GetError());
-                        }else
-                        {
-                            printf("哈哈，一切都好!开始渲染");        
+                        } else {
+                            printf("哈哈，一切都好!开始渲染");
 
-                            SDL_RenderSetLogicalSize(renderer,SCREEN_WIDTH,SCREEN_HEIGHT);
+                            SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
                             SDL_Event e;
 
                             bool quit = false;
 
-                            while(!quit){
-                                while(SDL_PollEvent(&e)){
-                                    if(e.type == SDL_QUIT){
+                            while (!quit) {
+                                while (SDL_PollEvent(&e)) {
+                                    if (e.type == SDL_QUIT) {
                                         quit = true;
                                     }
                                 }
@@ -66,41 +73,41 @@ int main(int argc, const char** argv) {
 
                                 int widthOffset = (SCREEN_WIDTH - SCREEN_HEIGHT) /2;
 
-                                //渲染0，0
-                                SDL_Rect pos_0_0{widthOffset,0, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&xSpriteClip,&pos_0_0,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染0，0
+                                SDL_Rect pos_0_0{widthOffset, 0,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_0_0, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染0，1
-                                SDL_Rect pos_0_1{pieceSize*1+widthOffset,0, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&oSpriteClip,&pos_0_1,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染0，1
+                                SDL_Rect pos_0_1{pieceSize*1+widthOffset, 0,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos_0_1, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染0，2
-                                SDL_Rect pos_0_2{pieceSize*2+widthOffset,0, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&xSpriteClip,&pos_0_2,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染0，2
+                                SDL_Rect pos_0_2{pieceSize*2+widthOffset, 0,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_0_2, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染1，0
-                                SDL_Rect pos_1_0{widthOffset,pieceSize*1, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&xSpriteClip,&pos_1_0,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染1，0
+                                SDL_Rect pos_1_0{widthOffset, pieceSize*1,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_1_0, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染1，1
-                                SDL_Rect pos_1_1{pieceSize*1+widthOffset,pieceSize*1, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&oSpriteClip,&pos_1_1,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染1，1
+                                SDL_Rect pos_1_1{pieceSize*1+widthOffset, pieceSize*1,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos_1_1, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染1，2
-                                SDL_Rect pos_1_2{pieceSize*2+widthOffset,pieceSize*1, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&xSpriteClip,&pos_1_2,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染1，2
+                                SDL_Rect pos_1_2{pieceSize*2+widthOffset, pieceSize*1,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_1_2, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染2，0
-                                SDL_Rect pos_2_0{widthOffset,pieceSize*2, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&xSpriteClip,&pos_2_0,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染2，0
+                                SDL_Rect pos_2_0{widthOffset, pieceSize*2,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_2_0, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染2，1
-                                SDL_Rect pos_2_1{pieceSize*1+widthOffset,pieceSize*2, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&oSpriteClip,&pos_2_1,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染2，1
+                                SDL_Rect pos_2_1{pieceSize*1+widthOffset, pieceSize*2,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos_2_1, 0, nullptr, SDL_FLIP_NONE);
 
-                                //渲染2，2
-                                SDL_Rect pos_2_2{pieceSize*2+widthOffset,pieceSize*2, pieceSize,pieceSize};
-                                SDL_RenderCopyEx(renderer,sprites,&xSpriteClip,&pos_2_2,0,nullptr,SDL_FLIP_NONE);
+                                // 渲染2，2
+                                SDL_Rect pos_2_2{pieceSize*2+widthOffset, pieceSize*2,  pieceSize, pieceSize};
+                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_2_2, 0, nullptr, SDL_FLIP_NONE);
 
                                 SDL_RenderPresent(renderer);
                             }
@@ -123,7 +130,6 @@ int main(int argc, const char** argv) {
         IMG_Quit();
         SDL_Quit();
     }
-    
 
     return 0;
 }
