@@ -10,7 +10,11 @@
  */
 #include <SDL.h>
 #include <SDL_image.h>
+#include <span>
 #include <cstdio>
+#include <iostream>
+
+class Board;
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -51,6 +55,15 @@ class Piece {
         }
     }
 
+    void onClick() const {
+        // TODO(Yao) Piece被点击后的处理器
+    }
+
+    Piece& operator=(const PieceType& pieceType) {
+        m_pieceType = pieceType;
+        return *this;
+    }
+
  private:
     int m_posX;
     int m_posY;
@@ -58,20 +71,63 @@ class Piece {
     PieceType m_pieceType;
 };
 
-Piece pieces[9] = {
-    Piece(0, 0, PieceType::X),
-    Piece(1, 0, PieceType::O),
-    Piece(2, 0, PieceType::X),
-    Piece(0, 1, PieceType::O),
-    Piece(1, 1, PieceType::X),
-    Piece(2, 1, PieceType::O),
-    Piece(0, 2, PieceType::X),
-    Piece(1, 2, PieceType::O),
-    Piece(2, 2, PieceType::X)
+
+class Board {
+ private:
+    Piece m_pieces[9];
+
+ public:
+    Board() : m_pieces {
+        Piece(0, 0, PieceType::None),
+        Piece(0, 1, PieceType::None),
+        Piece(0, 2, PieceType::None),
+
+        Piece(1, 0, PieceType::None),
+        Piece(1, 1, PieceType::None),
+        Piece(1, 2, PieceType::None),
+
+        Piece(2, 0, PieceType::None),
+        Piece(2, 1, PieceType::None),
+        Piece(2, 2, PieceType::None)
+    } {}
+
+    void setPiece(int posX, int posY, PieceType pieceType) {
+        m_pieces[posY*3 + posX] = pieceType;
+    }
+
+    Piece& getPiece(int posX, int posY) {
+        return m_pieces[posY*3 + posX];
+    }
+
+    const Piece* getPieces() {
+        return m_pieces;
+    }
+
+    void handleEvent(const SDL_Event& e) {
+        // TODO(Yao) 接收鼠标点击事件
+
+        // TODO(Yao) 判断哪个Piece位置被点击
+
+        // TODO(Yao) 调用Piece的onClick事件
+    }
+
+    void draw() {
+        SDL_SetRenderDrawColor(renderer, 255, 128, 0, 255);
+
+        SDL_Rect outBorder {Width_Offset, 0, Piece_Size*3, Piece_Size*3};
+        SDL_RenderDrawRect(renderer, &outBorder);
+
+        SDL_RenderDrawLine(renderer, Width_Offset, Piece_Size, Width_Offset + Piece_Size * 3, Piece_Size);
+        SDL_RenderDrawLine(renderer, Width_Offset, Piece_Size * 2, Width_Offset + Piece_Size * 3, Piece_Size * 2);
+
+        SDL_RenderDrawLine(renderer, Width_Offset + Piece_Size, 0, Width_Offset + Piece_Size, Piece_Size * 3);
+        SDL_RenderDrawLine(renderer, Width_Offset + Piece_Size * 2, 0, Width_Offset + Piece_Size * 2, Piece_Size * 3);
+    }
 };
 
-
 int main(int argc, const char** argv) {
+    Board board;
+
     if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
         printf("初始化SDL失败%s\n", SDL_GetError());
     } else {
@@ -112,13 +168,19 @@ int main(int argc, const char** argv) {
                                     if (e.type == SDL_QUIT) {
                                         quit = true;
                                     }
+
+                                    board.handleEvent(e);
                                 }
 
                                 SDL_SetRenderDrawColor(renderer, 0xCC, 0xCC, 0xCC, 0xFF);
                                 SDL_RenderClear(renderer);
 
-                                for (const Piece& p : pieces) {
-                                    p.draw();
+                                board.draw();
+
+                                const Piece* pieces = board.getPieces();
+
+                                for (int i = 0; i < 9; i++) {
+                                    pieces[i].draw();
                                 }
 
                                 SDL_RenderPresent(renderer);
