@@ -20,8 +20,56 @@ SDL_Texture* sprites;
 SDL_Rect xSpriteClip{0, 0, 32, 32};
 SDL_Rect oSpriteClip{32, 0, 32, 32};
 
-int SCREEN_WIDTH = 640;
-int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
+const int Piece_Size = SCREEN_HEIGHT/3;
+const int Width_Offset = (SCREEN_WIDTH - SCREEN_HEIGHT) /2;
+
+enum class PieceType {
+    None,
+    X,
+    O,
+};
+
+class Piece {
+ public:
+    Piece() : m_posX{0}, m_posY{0}, m_pieceType{PieceType::None} {}
+    Piece(int posX, int posY, PieceType pieceType = PieceType::None) : m_posX{posX}, m_posY{posY}, m_pieceType{pieceType} {}
+
+    void draw() const {
+        SDL_Rect pos{Piece_Size * m_posX + Width_Offset, Piece_Size * m_posY,  Piece_Size, Piece_Size};
+
+        switch (m_pieceType) {
+        case PieceType::X:
+            SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos, 0, nullptr, SDL_FLIP_NONE);
+            break;
+        case PieceType::O:
+            SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos, 0, nullptr, SDL_FLIP_NONE);
+            break;
+        default:
+            break;
+        }
+    }
+
+ private:
+    int m_posX;
+    int m_posY;
+
+    PieceType m_pieceType;
+};
+
+Piece pieces[9] = {
+    Piece(0, 0, PieceType::X),
+    Piece(1, 0, PieceType::O),
+    Piece(2, 0, PieceType::X),
+    Piece(0, 1, PieceType::O),
+    Piece(1, 1, PieceType::X),
+    Piece(2, 1, PieceType::O),
+    Piece(0, 2, PieceType::X),
+    Piece(1, 2, PieceType::O),
+    Piece(2, 2, PieceType::X)
+};
+
 
 int main(int argc, const char** argv) {
     if ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0 ) {
@@ -69,45 +117,9 @@ int main(int argc, const char** argv) {
                                 SDL_SetRenderDrawColor(renderer, 0xCC, 0xCC, 0xCC, 0xFF);
                                 SDL_RenderClear(renderer);
 
-                                int pieceSize = SCREEN_HEIGHT/3;
-
-                                int widthOffset = (SCREEN_WIDTH - SCREEN_HEIGHT) /2;
-
-                                // 渲染0，0
-                                SDL_Rect pos_0_0{widthOffset, 0,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_0_0, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染0，1
-                                SDL_Rect pos_0_1{pieceSize*1+widthOffset, 0,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos_0_1, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染0，2
-                                SDL_Rect pos_0_2{pieceSize*2+widthOffset, 0,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_0_2, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染1，0
-                                SDL_Rect pos_1_0{widthOffset, pieceSize*1,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_1_0, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染1，1
-                                SDL_Rect pos_1_1{pieceSize*1+widthOffset, pieceSize*1,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos_1_1, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染1，2
-                                SDL_Rect pos_1_2{pieceSize*2+widthOffset, pieceSize*1,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_1_2, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染2，0
-                                SDL_Rect pos_2_0{widthOffset, pieceSize*2,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_2_0, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染2，1
-                                SDL_Rect pos_2_1{pieceSize*1+widthOffset, pieceSize*2,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &oSpriteClip, &pos_2_1, 0, nullptr, SDL_FLIP_NONE);
-
-                                // 渲染2，2
-                                SDL_Rect pos_2_2{pieceSize*2+widthOffset, pieceSize*2,  pieceSize, pieceSize};
-                                SDL_RenderCopyEx(renderer, sprites, &xSpriteClip, &pos_2_2, 0, nullptr, SDL_FLIP_NONE);
+                                for (const Piece& p : pieces) {
+                                    p.draw();
+                                }
 
                                 SDL_RenderPresent(renderer);
                             }
